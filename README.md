@@ -59,6 +59,10 @@ A simple card to display big numbers for sensors. It also supports severity leve
 | noneCardClass | string | optional | CSS class to add to card if value == None
 | noneValueClass | string | optional | CSS class to add to value if value == None
 | round | int | optional | Number of decimals to round to. (If not present, do not round.)
+| title_font_size | string | optional | NEW: Custom font size for title (e.g., "14px", "1rem"). Overrides scale-based sizing
+| value_font_size | string | optional | NEW: Custom font size for value (e.g., "30px", "2rem"). Overrides scale-based sizing
+| card_padding | string | optional | NEW: Custom card padding (e.g., "20px 10px"). Allows independent height control
+| tap_action | object | `{action: 'more-info'}` | NEW: Action to perform on tap. See Tap Action Object below
 
 ### Severity Object
 
@@ -68,7 +72,20 @@ A simple card to display big numbers for sensors. It also supports severity leve
 | bnStyle | string | **Required** | Color of severity. Can be either hex or HA variable. Example: 'var(--label-badge-green)'
 | color | string | `var(--primary-text-color)` | Font color of the severity. Can be either hex or HA variable. Example: 'var(--secondary-text-color)'
 
+### Tap Action Object
+
+| Name | Type | Default | Description
+| ---- | ---- | ------- | -----------
+| action | string | `more-info` | Action type: `more-info`, `toggle`, `call-service`, `navigate`, `url`, `none`
+| navigation_path | string | optional | Path to navigate to (e.g., `/lovelace/1`) when action is `navigate`
+| url_path | string | optional | URL to open when action is `url`
+| service | string | optional | Service to call when action is `call-service` (e.g., `light.turn_on`)
+| service_data | object | optional | Service data to pass when action is `call-service`
+
 ### Important Notes
+
+- Numbers are automatically formatted with locale-aware thousands separators (e.g., 19,578 in US, 19.578 in German)
+- Font sizes can be customized independently from the `scale` parameter for better layout control
 
 - Make sure you use ascending object values to have consistent behaviour
 - Values are the upper limit until which that severity is applied
@@ -131,6 +148,67 @@ If your sensor may result in `None` (for instance if it is offline), you may wis
     .none-value-class {
       font-size: 22px !important;
     }
+```
+
+### Custom Font Sizes Example
+
+Customize font sizes independently from card scale:
+
+```yaml
+- type: custom:bignumber-card
+  title: Temperature
+  entity: sensor.living_room_temperature
+  scale: 30px
+  title_font_size: 12px
+  value_font_size: 48px
+  card_padding: 15px 10px
+```
+
+### Tap Action Examples
+
+Toggle a light on tap:
+
+```yaml
+- type: custom:bignumber-card
+  title: Power Usage
+  entity: sensor.power_consumption
+  tap_action:
+    action: toggle
+```
+
+Navigate to another view:
+
+```yaml
+- type: custom:bignumber-card
+  title: Temperature
+  entity: sensor.outside_temperature
+  tap_action:
+    action: navigate
+    navigation_path: /lovelace/climate
+```
+
+Call a service with data:
+
+```yaml
+- type: custom:bignumber-card
+  title: Volume
+  entity: sensor.media_volume
+  tap_action:
+    action: call-service
+    service: media_player.volume_set
+    service_data:
+      entity_id: media_player.living_room
+      volume_level: 0.5
+```
+
+Disable tap action:
+
+```yaml
+- type: custom:bignumber-card
+  title: Read Only
+  entity: sensor.outdoor_humidity
+  tap_action:
+    action: none
 ```
 
 ## Contributing

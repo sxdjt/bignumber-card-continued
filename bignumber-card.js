@@ -20,6 +20,24 @@ class BigNumberCard extends HTMLElement {
     if (!cardConfig.noneString) cardConfig.nonestring = null;
     if (!cardConfig.noneCardClass) cardConfig.noneCardClass = null;
     if (!cardConfig.noneValueClass) cardConfig.noneValueClass = null;
+
+    // NEW: Custom font size support (PR #47 - issue #39)
+    // Allows independent control of title and value font sizes separate from scale parameter
+    // Defaults to null to maintain backwards compatibility with scale-based sizing
+    if (!cardConfig.title_font_size) cardConfig.title_font_size = null;
+    if (!cardConfig.value_font_size) cardConfig.value_font_size = null;
+
+    // NEW: Custom card padding support (PR #47 - issue #39)
+    // Decouples card height from font sizes for better layout control
+    // Defaults to null to maintain backwards compatibility with scale-based padding
+    if (!cardConfig.card_padding) cardConfig.card_padding = null;
+
+    // NEW: Tap action support (PR #48 - issue #41)
+    // Defaults to more-info to maintain backwards compatibility with existing behavior
+    if (!cardConfig.tap_action) {
+      cardConfig.tap_action = { action: 'more-info' };
+    }
+
     this.isNoneConfig = Boolean(cardConfig.noneString || cardConfig.noneCardClass || cardConfig.noneValueClass)
 
     const card = document.createElement('ha-card');
@@ -28,6 +46,14 @@ class BigNumberCard extends HTMLElement {
     const title = document.createElement('div');
     title.id = "title"
     title.textContent = cardConfig.title;
+
+    // NEW: Calculate font sizes and padding with user overrides (PR #47 - issue #39)
+    // If user provides custom values, use them; otherwise fall back to scale-based defaults
+    // This allows users to set small card heights with large fonts, or vice versa
+    const valueFontSize = cardConfig.value_font_size || 'calc(var(--base-unit) * 1.3)';
+    const titleFontSize = cardConfig.title_font_size || 'calc(var(--base-unit) * 0.5)';
+    const cardPadding = cardConfig.card_padding || 'calc(var(--base-unit)*0.6) calc(var(--base-unit)*0.3)';
+
     const style = document.createElement('style');
     style.textContent = `
       ha-card {
@@ -37,27 +63,31 @@ class BigNumberCard extends HTMLElement {
         --bignumber-percent: 100%;
         --bignumber-direction: ${cardConfig.from};
         --base-unit: ${cardConfig.scale};
-        padding: calc(var(--base-unit)*0.6) calc(var(--base-unit)*0.3);
+        padding: ${cardPadding};
         background: linear-gradient(to var(--bignumber-direction), var(--card-background-color) var(--bignumber-percent), var(--bignumber-fill-color) var(--bignumber-percent));
       }
       #value {
-        font-size: calc(var(--base-unit) * 1.3);
-        line-height: calc(var(--base-unit) * 1.3);
+        font-size: ${valueFontSize};
+        line-height: ${valueFontSize};
         color: var(--bignumber-color);
       }
       #value small{opacity: ${cardConfig.opacity}}
       #title {
-        font-size: calc(var(--base-unit) * 0.5);
-        line-height: calc(var(--base-unit) * 0.5);
+        font-size: ${titleFontSize};
+        line-height: ${titleFontSize};
         color: var(--bignumber-color);
       }
     `;
     card.appendChild(content);
     card.appendChild(title);
     card.appendChild(style);
+
+    // NEW: Handle tap actions (PR #48 - issue #41)
+    // Replaces hardcoded more-info with configurable tap action handler
     card.addEventListener('click', event => {
-      this._fire('hass-more-info', { entityId: cardConfig.entity });
+      this._handleTapAction(cardConfig.tap_action, cardConfig.entity);
     });
+
     root.appendChild(card);
     this._config = cardConfig;
   }
@@ -74,6 +104,71 @@ class BigNumberCard extends HTMLElement {
     event.detail = detail;
     node.dispatchEvent(event);
     return event;
+  }
+
+  // NEW: Handle tap actions (PR #48 - issue #41)
+  // Implements standard Home Assistant tap action behaviors:
+  // - more-info: Show entity history popup (default)
+  // - toggle: Toggle the entity state
+  // - call-service: Call a Home Assistant service
+  // - navigate: Navigate to a Lovelace view
+  // - url: Open an external URL
+  // - none: Do nothing (disable tap action)
+  _handleTapAction(actionConfig, entityId) {
+    if (!actionConfig || actionConfig.action === 'none') {
+      return;
+    }
+
+    switch (actionConfig.action) {
+      case 'more-info':
+        this._fire('hass-more-info', { entityId: entityId });
+        break;
+
+      case 'toggle':
+        this._toggleEntity(entityId);
+        break;
+
+      case 'call-service':
+        if (actionConfig.service) {
+          this._callService(actionConfig.service, actionConfig.service_data);
+        }
+        break;
+
+      case 'navigate':
+        if (actionConfig.navigation_path) {
+          window.history.pushState(null, '', actionConfig.navigation_path);
+          this._fire('location-changed', { replace: false });
+        }
+        break;
+
+      case 'url':
+        if (actionConfig.url_path) {
+          window.open(actionConfig.url_path);
+        }
+        break;
+
+      default:
+        // Fall back to more-info for unknown actions
+        this._fire('hass-more-info', { entityId: entityId });
+    }
+  }
+
+  // NEW: Toggle entity helper (PR #48 - issue #41)
+  // Calls the appropriate toggle service based on entity domain
+  _toggleEntity(entityId) {
+    const domain = entityId.split('.')[0];
+    this._callService(`${domain}.toggle`, { entity_id: entityId });
+  }
+
+  // NEW: Call service helper (PR #48 - issue #41)
+  // Fires the call-service event to Home Assistant
+  _callService(service, serviceData) {
+    const [domain, serviceAction] = service.split('.');
+    this._fire('hass-call-service', {
+      service: serviceAction,
+      domain: domain,
+      service_data: serviceData || {}
+    });
   }
 
   _computeSeverity(stateValue, sections) {
@@ -106,6 +201,24 @@ class BigNumberCard extends HTMLElement {
     return 100-100 * (value - min) / (max - min);
   }
 
+  // NEW: Format numbers with locale-aware thousands separators (PR #46 - issue #45)
+  // Uses toLocaleString() for automatic locale-based formatting
+  // Respects config.round setting for decimal precision
+  _formatNumber(value, config) {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      return value;
+    }
+
+    const options = {};
+    if (config.round != null) {
+      options.minimumFractionDigits = config.round;
+      options.maximumFractionDigits = config.round;
+    }
+
+    return numValue.toLocaleString(undefined, options);
+  }
+
   set hass(hass) {
     const config = this._config;
     const root = this.shadowRoot;
@@ -121,13 +234,16 @@ class BigNumberCard extends HTMLElement {
       root.querySelector("ha-card").style.setProperty('--bignumber-fill-color', `${this._getStyle(entityState, config)}`);
       root.querySelector("ha-card").style.setProperty('--bignumber-color', `${this._getColor(entityState, config)}`);
       this._entityState = entityState
-      let value = (config.round == null ? entityState : parseFloat(entityState).toFixed(config.round))
+      // NEW: Use locale-aware formatting (PR #46 - issue #45)
+      const numValue = parseFloat(entityState);
+      let value = this._formatNumber(entityState, config);
       if (config.hideunit==true)
         { root.getElementById("value").textContent = `${value}`; }
       else
         { root.getElementById("value").innerHTML = `${value}<small>${measurement}</small>`; }
       if (this.isNoneConfig){
-        if (isNaN(value)) {
+        // NEW: Fixed None detection bug - check numeric value instead of formatted string (PR #46)
+        if (isNaN(numValue)) {
           if (config.noneString) {
             root.getElementById("value").textContent = config.noneString;
           }
