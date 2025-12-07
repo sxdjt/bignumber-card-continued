@@ -6,6 +6,16 @@ IMPORTANT: This is a community-maintained continuation of the original [bignumbe
 
 This project maintains the original functionality while incorporating bug fixes and community-requested features. The original authors deserve full credit for the excellent foundation they created.
 
+## Migrating to the Continued version
+
+The Continued version is 100% compatible with existing bignumber-card configurations.  You should not have to change anything.
+
+1. Install the Continued version card
+2. Uninstall the original version
+3. Hard-refresh your browser
+4. Check that everything is working
+5. If not, please submit a [bug report](https://github.com/sxdjt/bignumber-card-continued/issues)
+
 ## What's Changed
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
@@ -213,7 +223,7 @@ Disable tap action:
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.
+Contributions are welcome! Please feel free to submit pull requests or [open an issue](https://github.com/sxdjt/bignumber-card-continued/issues) for bugs and feature requests.
 
 ## Credits
 
