@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-continued] - 2025-12-15
+
 ### Added
 - Locale-aware number formatting with automatic thousands separators (PR #46)
   - Uses browser locale for formatting (e.g., 19,578 in US, 19.578 in German)
