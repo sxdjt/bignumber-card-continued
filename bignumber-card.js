@@ -341,6 +341,9 @@ class BigNumberCard extends HTMLElement {
     }
 
     const options = {};
+    if (config.use_grouping === false) {
+      options.useGrouping = false;
+    }
     if (config.round != null) {
       options.minimumFractionDigits = config.round;
       options.maximumFractionDigits = config.round;
