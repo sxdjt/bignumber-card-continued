@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.7.28] - 2026-07-28
+
+### Added
+- `use_grouping` option (default `true`) to control locale-aware thousands separators. Set `use_grouping: false` to display raw digits without separators (e.g. `19578` instead of `19,578`). Also exposed as a "Thousands separators" toggle in the visual editor. Thanks to [@gridlockjoe](https://github.com/gridlockjoe) (PR #14).
+
 ## [2026.7.24] - 2026-07-24
 
 ### Fixed

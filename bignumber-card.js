@@ -1,7 +1,7 @@
-/* Last modified: 24-Jul-2026 - 2026.7.24 */
+/* Last modified: 28-Jul-2026 - 2026.7.28 */
 
 console.info(
-  `%c BIGNUMBER-CARD-CONTINUED %c 2026.7.24 `,
+  `%c BIGNUMBER-CARD-CONTINUED %c 2026.7.28 `,
   'color: black; background: #F2720C; font-weight: 600;',
   'color: black; background: #00a5c9; font-weight: 600;'
 );
@@ -941,6 +941,8 @@ class BigNumberCardEditor extends HTMLElement {
     // Default true; use !== false so an unset config shows the toggle as on (issue #13)
     displayContent.appendChild(this._createSwitch('full_height', 'Fill container height (turn off for picture-elements)', this._config.full_height !== false));
     displayContent.appendChild(this._createTextfield('round', 'Decimal places', this._config.round, 'Number of decimal places (0-10)', 'number'));
+    // Default true; use !== false so an unset config shows the toggle as on (thousands separators enabled)
+    displayContent.appendChild(this._createSwitch('use_grouping', 'Thousands separators', this._config.use_grouping !== false));
     displayContent.appendChild(this._createTextfield('unit', 'Custom unit', this._config.unit, 'Override entity unit of measurement'));
     displayContent.appendChild(this._createSelect('unit_position', 'Unit position', this._config.unit_position || 'right', [
       { value: 'right', label: 'Right (default) - e.g. 5.06 £' },

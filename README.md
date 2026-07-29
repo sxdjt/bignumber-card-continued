@@ -50,6 +50,7 @@ A simple card to display big numbers for sensors. It also supports severity leve
 | unit | string | optional | Custom unit to display instead of entity's unit_of_measurement. Leave unset to use entity unit. Set to empty string "" to force no unit. Examples: " %", " pancakes/hour", "°F"
 | unit_font_size | string | optional | Custom font size for unit of measurement (e.g., "20px", "1em"). Overrides default small-tag sizing
 | unit_position | string | `right` | Position of the unit relative to the value: `right` (default, e.g., `5.06 kWh`) or `left` (e.g., `£5.06`)
+| use_grouping | boolean | true | Show locale-aware thousands separators (e.g. `19,578`). Set `false` to suppress grouping and display the raw digits (e.g. `19578`)
 | value_font_size | string | optional | Custom font size for value (e.g., "30px", "2rem"). Overrides scale-based sizing
 
 #### Deprecated Option Names (Still Supported)
