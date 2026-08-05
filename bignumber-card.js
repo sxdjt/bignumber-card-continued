@@ -1,7 +1,7 @@
-/* Last modified: 28-Jul-2026 - 2026.7.28 */
+/* Last modified: 04-Aug-2026 - 2026.8.4 */
 
 console.info(
-  `%c BIGNUMBER-CARD-CONTINUED %c 2026.7.28 `,
+  `%c BIGNUMBER-CARD-CONTINUED %c 2026.8.4 `,
   'color: black; background: #F2720C; font-weight: 600;',
   'color: black; background: #00a5c9; font-weight: 600;'
 );
@@ -300,8 +300,17 @@ class BigNumberCard extends HTMLElement {
     return 'var(--card-background-color)';
   }
 
+  // Convert a value into the gradient stop position for the progress bar.
+  // The CSS contract is inverted: 100% is an empty bar, 0% is a completely full one.
   _translatePercent(value, min, max) {
-    return 100-100 * (value - min) / (max - min);
+    const rawPercent = 100 - 100 * (value - min) / (max - min);
+    // Clamp into 0-100. Without this, a value outside min/max produces a wildly
+    // out-of-range stop position (max: 1 with a state of 170 gives -16900%). WebKit
+    // refuses to render that and discards the whole gradient, so the card paints with
+    // no color at all on iOS, while Blink/Gecko tolerate it and look correct.
+    // Clamping leaves the visual result identical (over max = full, under min = empty)
+    // but keeps the stop inside the range every engine renders. Upstream issue #7.
+    return Math.min(100, Math.max(0, rawPercent));
   }
 
   // NEW: Resolve a dynamic progress-bar bound (issue #12).

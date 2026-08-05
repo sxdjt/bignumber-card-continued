@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.8.4] - 2026-08-04
+
+### Fixed
+- Card rendering with no color at all on iOS/iPadOS when the entity's value falls outside the configured `min`/`max` range (upstream issue #7). The progress bar's gradient stop position was left unclamped, so a value well beyond `max` (for example `max: 1` with a state of `170`) produced a stop position of `-16900%`. WebKit discards a gradient with a stop that far out of range and paints the bare card background, while Blink and Gecko tolerate it - so the same dashboard looked correct on desktop and colorless on a phone. The position is now clamped to `0-100%`. Values inside `min`/`max` are unaffected, and out-of-range values render exactly as they already did on desktop (over `max` = completely full, under `min` = empty).
+
 ## [2026.7.28] - 2026-07-28
 
 ### Added

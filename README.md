@@ -31,7 +31,7 @@ A simple card to display big numbers for sensors. It also supports severity leve
 | from | string | left | Direction from where the bar will start filling (must have min/max specified)
 | full_height | boolean | true | Fill the container height. Leave `true` for normal dashboard/grid/sections placement. Set `false` to size the card to its content when placing it in a `picture-elements` card. See [Picture Elements](#picture-elements)
 | hideunit | boolean | optional | hide the unit of measurement if set to true. If absent, unit of measurement will be shown
-| max | number | optional | Maximum value. Must be specified if you added min
+| max | number | optional | Maximum value. Must be specified if you added min. Values outside `min`/`max` are clamped, so the bar shows completely full above `max` and empty below `min`
 | max_entity | string | optional | Entity whose value is used as the maximum, overriding `max`. Falls back to `max` if the entity is unavailable or non-numeric. See [Dynamic min/max](#dynamic-minmax)
 | max_entity_attribute | string | optional | Attribute of `max_entity` to read instead of its state (e.g. `max_temp`). See [Dynamic min/max](#dynamic-minmax)
 | min | number | optional | Minimum value. If specified you get bar display
