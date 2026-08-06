@@ -1,7 +1,7 @@
-/* Last modified: 04-Aug-2026 - 2026.8.4 */
+/* Last modified: 05-Aug-2026 - 2026.8.5 */
 
 console.info(
-  `%c BIGNUMBER-CARD-CONTINUED %c 2026.8.4 `,
+  `%c BIGNUMBER-CARD-CONTINUED %c 2026.8.5 `,
   'color: black; background: #F2720C; font-weight: 600;',
   'color: black; background: #00a5c9; font-weight: 600;'
 );
@@ -48,6 +48,16 @@ class BigNumberCard extends HTMLElement {
     // Allows overriding entity's unit_of_measurement for display
     // If undefined, falls back to entity attribute (original behavior)
     if (cardConfig.unit === undefined) cardConfig.unit = null;
+
+    // NEW: Display entity support (issue #12)
+    // Renders the text of a different entity than the one driving the progress bar,
+    // so the card can graph a numeric sensor while displaying, for example, a template
+    // helper that combines several values into one string ("26 / 81").
+    // The primary `entity` keeps every other role: bar value, severity thresholds,
+    // tap target, and None-state detection.
+    // Defaults to null, which renders the primary entity as before.
+    if (!cardConfig.display_entity) cardConfig.display_entity = null;
+    if (!cardConfig.display_attribute) cardConfig.display_attribute = null;
 
     // Unit position: "right" (default) places unit after value, "left" places it before
     // Useful for currency symbols (e.g. £5.06 instead of 5.06£)
@@ -384,9 +394,29 @@ class BigNumberCard extends HTMLElement {
     const entityState = config.attribute
       ? entity.attributes[config.attribute]
       : entity.state;
+
+    // NEW: Resolve the text shown as the big number (issue #12).
+    // Defaults to the primary entity, so configs without display_entity are unchanged.
+    // A configured-but-missing display entity degrades to the primary entity rather than
+    // blanking the card - showing the raw number is more useful than showing nothing.
+    let displayState = entityState;
+    let displaySource = entity;
+    if (config.display_entity) {
+      const configuredDisplay = hass.states[config.display_entity];
+      if (configuredDisplay) {
+        displaySource = configuredDisplay;
+        displayState = config.display_attribute
+          ? configuredDisplay.attributes[config.display_attribute]
+          : configuredDisplay.state;
+      } else {
+        console.warn(`BigNumberCard: Display entity ${config.display_entity} not found`);
+      }
+    }
+
     // NEW: Support custom unit override
-    // Priority: config.unit (if defined) → entity.attributes.unit_of_measurement → empty string
-    const measurement = config.unit !== null ? config.unit : (entity.attributes.unit_of_measurement || "");
+    // Priority: config.unit (if defined) → displaySource.attributes.unit_of_measurement → empty string
+    // Reads from displaySource because the unit annotates the number actually shown.
+    const measurement = config.unit !== null ? config.unit : (displaySource.attributes.unit_of_measurement || "");
 
     // NEW: Resolve possibly-dynamic bounds every update (issue #12).
     // These may be sourced from another entity, so they are re-read on each hass
@@ -406,14 +436,22 @@ class BigNumberCard extends HTMLElement {
       this._max = max;
     }
 
-    if (entityState !== this._entityState) {
+    // The displayed text must repaint when EITHER the primary entity or the display
+    // entity changes. A display_entity can update while the primary is unchanged (and
+    // vice versa), so both are tracked. Colors are rewritten on a display-only change
+    // too; setProperty with an unchanged value is cheap, and this keeps the update in
+    // one block rather than splitting it.
+    if (entityState !== this._entityState || displayState !== this._displayState) {
       root.querySelector("ha-card").style.setProperty('--bignumber-fill-color', `${this._getFillColor(entityState, config)}`);
       root.querySelector("ha-card").style.setProperty('--bignumber-text-color', `${this._getTextColor(entityState, config)}`);
       root.querySelector("ha-card").style.setProperty('--bignumber-background-color', `${this._getBackgroundColor(entityState, config)}`);
       this._entityState = entityState
+      this._displayState = displayState
       // NEW: Use locale-aware formatting (PR #46 - issue #45)
+      // None detection stays on the PRIMARY entity: a display template producing
+      // "unavailable / unavailable" is non-numeric even when the primary sensor is fine.
       const numValue = parseFloat(entityState);
-      let value = this._formatNumber(entityState, config);
+      let value = this._formatNumber(displayState, config);
       if (config.hideunit==true)
         { root.getElementById("value").textContent = `${value}`; }
       else {
@@ -945,7 +983,14 @@ class BigNumberCardEditor extends HTMLElement {
     const displayContent = document.createElement('div');
     displayContent.className = 'panel-content';
 
+    const displayEntityNote = document.createElement('div');
+    displayEntityNote.className = 'section-note';
+    displayEntityNote.textContent = 'By default the card shows the value of the entity above. Set a display entity to show a different entity\'s value as the text instead - useful for template helpers that combine several values into one string. The entity above still drives the progress bar, severity colors, and tap action.';
+    displayContent.appendChild(displayEntityNote);
+
     displayContent.appendChild(this._createTextfield('attribute', 'Attribute (optional)', this._config.attribute, 'Display entity attribute instead of state'));
+    displayContent.appendChild(this._createEntityPicker('display_entity', 'Display entity (optional)', this._config.display_entity));
+    displayContent.appendChild(this._createTextfield('display_attribute', 'Display attribute (optional)', this._config.display_attribute, 'Attribute of the display entity to show instead of its state'));
     displayContent.appendChild(this._createSwitch('hideunit', 'Hide unit of measurement', this._config.hideunit));
     // Default true; use !== false so an unset config shows the toggle as on (issue #13)
     displayContent.appendChild(this._createSwitch('full_height', 'Fill container height (turn off for picture-elements)', this._config.full_height !== false));

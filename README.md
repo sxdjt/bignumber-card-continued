@@ -26,6 +26,8 @@ A simple card to display big numbers for sensors. It also supports severity leve
 | attribute | string | optional | the entity attribute you want to display e.g. `current_temperature`.  The entity state will be shown if not defined.
 | background_color | string | `var(--card-background-color)` | Unfilled bar portion color. Can be a hex value, CSS color name (e.g. green), or HA variable
 | card_padding | string | optional | Custom card padding (e.g., "20px 10px"). Allows independent height control
+| display_attribute | string | optional | Attribute of `display_entity` to show instead of its state. See [Displaying a different entity](#displaying-a-different-entity)
+| display_entity | string | optional | Entity whose value is shown as the card's text, instead of `entity`. `entity` still drives the progress bar, severity colors, and tap action. See [Displaying a different entity](#displaying-a-different-entity)
 | entity | string | **Required** | `sensor.my_temperature`
 | fill_color | string | `var(--label-badge-blue)` | Bar fill color. Can be a hex value, CSS color name (e.g. green), or HA variable. Example: `var(--label-badge-green)`
 | from | string | left | Direction from where the bar will start filling (must have min/max specified)
@@ -185,6 +187,49 @@ Source both bounds from attributes of a climate entity:
   max_entity_attribute: max_temp
   from: bottom
 ```
+
+### Displaying a different entity
+
+By default the card shows the value of `entity`, and that same value drives the progress
+bar. `display_entity` separates the two: the card graphs `entity` but shows the value of
+`display_entity` as its text. Use `display_attribute` to show an attribute of that entity
+instead of its state.
+
+This is for cases where the text you want is not a plain number - most commonly a template
+helper that combines several values into one string. Because such a string is not numeric,
+it cannot drive the progress bar itself, so the numeric sensor stays in `entity`.
+
+`entity` keeps every other role: it supplies the progress bar value, the severity
+thresholds, the unit fallback, the tap action target, and the None-state detection. Only
+the displayed text comes from `display_entity`. If `display_entity` is unavailable or not
+found, the card falls back to displaying `entity` so the number is still readable.
+
+3D printer progress, showing `26 / 81` while the bar tracks the current layer
+(requested by [@Scabattoir](https://github.com/Scabattoir) in issue #12):
+
+```yaml
+- type: custom:bignumber-card
+  title: Layer
+  entity: sensor.p1s_current_layer          # drives the progress bar
+  display_entity: sensor.p1s_layer_fraction # shown as the text, e.g. "26 / 81"
+  min: 0
+  max_entity: sensor.p1s_total_layer_count
+  hideunit: true
+  from: left
+```
+
+The template helper behind `sensor.p1s_layer_fraction`:
+
+```yaml
+template:
+  - sensor:
+      - name: P1S Layer Fraction
+        state: >-
+          {{ states('sensor.p1s_current_layer') }} / {{ states('sensor.p1s_total_layer_count') }}
+```
+
+NOTE: `round` and `use_grouping` only apply to numeric values. A non-numeric display value
+such as `26 / 81` is shown exactly as the entity reports it.
 
 ### Using card-mod to display cover/background images
 

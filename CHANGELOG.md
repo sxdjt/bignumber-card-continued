@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.8.5] - 2026-08-05
+
+### Added
+- `display_entity` and `display_attribute` options to show one entity's value as the card's text while a different entity drives the progress bar (issue #12, requested by [@Scabattoir](https://github.com/Scabattoir)). Previously the displayed value and the bar value were always the same entity, so a template helper combining several values into one string (for example `26 / 81` for 3D printer layers) could be displayed but could not fill the bar, because the string is not numeric. Now `entity` supplies the bar value, severity thresholds, tap action, and None-state detection, while `display_entity` supplies only the text. A missing or unavailable `display_entity` falls back to displaying `entity`. Both options are also exposed in the visual editor under Display Options. Configs without `display_entity` are unaffected.
+
 ## [2026.8.4] - 2026-08-04
 
 ### Fixed
