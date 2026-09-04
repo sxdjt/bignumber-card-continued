@@ -1,7 +1,7 @@
-/* Last modified: 05-Aug-2026 - 2026.8.5 */
+/* Last modified: 03-Sep-2026 - 2026.9.3 */
 
 console.info(
-  `%c BIGNUMBER-CARD-CONTINUED %c 2026.8.5 `,
+  `%c BIGNUMBER-CARD-CONTINUED %c 2026.9.3 `,
   'color: black; background: #F2720C; font-weight: 600;',
   'color: black; background: #00a5c9; font-weight: 600;'
 );
@@ -314,6 +314,17 @@ class BigNumberCard extends HTMLElement {
   // The CSS contract is inverted: 100% is an empty bar, 0% is a completely full one.
   _translatePercent(value, min, max) {
     const rawPercent = 100 - 100 * (value - min) / (max - min);
+    // Guard against NaN, which the clamp below cannot fix - Math.min(100, Math.max(0,
+    // NaN)) is still NaN. Two routes reach it: a non-numeric state such as "unavailable",
+    // and a collapsed range where min equals max AND the value sits exactly on that
+    // bound, making the division 0 / 0. The property would then be written as "NaN%",
+    // which is not a valid <percentage>, so the gradient is invalid at computed-value
+    // time and the browser discards it - the card paints with no bar at all. Falling
+    // back to 100 renders an empty bar, matching the under-min convention below.
+    // Only NaN is caught here, not every non-finite value: a collapsed range with the
+    // value off the bound divides by zero to +/-Infinity, which the clamp already turns
+    // into the correct empty (under) or full (over) bar. Issue #15.
+    if (Number.isNaN(rawPercent)) return 100;
     // Clamp into 0-100. Without this, a value outside min/max produces a wildly
     // out-of-range stop position (max: 1 with a state of 170 gives -16900%). WebKit
     // refuses to render that and discards the whole gradient, so the card paints with

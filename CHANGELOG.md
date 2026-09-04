@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.9.3] - 2026-09-03
+
+### Fixed
+- Progress bar rendering with no color when the entity state is non-numeric, or when `min` equals `max` and the value sits exactly on that bound (issue #15). `_translatePercent()` returned `NaN` in both cases, which was written into the `--bignumber-percent` custom property as `NaN%`. That is not a valid `<percentage>`, so the `linear-gradient` was invalid at computed-value time and the browser discarded it, painting the card with no bar. This is the same visible symptom as the iOS bug fixed in 2026.8.4, reached by a different route, so the clamp added there did not catch it (`Math.min(100, Math.max(0, NaN))` is still `NaN`). A `NaN` result now falls back to an empty bar, consistent with the existing under-`min` convention. Out-of-range values, including a collapsed range where the value is off the bound, are unchanged - they still divide to +/-`Infinity`, which the clamp already resolves to a full or empty bar. The collapsed-range case is easiest to hit with `min_entity` / `max_entity`, where a referenced sensor can legitimately report `0` while the static bound is also `0` - for example a 3D printer's total-layer-count sensor between prints. Values in a normal range are unaffected.
+
 ## [2026.8.5] - 2026-08-05
 
 ### Added
