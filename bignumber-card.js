@@ -1,7 +1,7 @@
 /* Last modified: 03-Sep-2026 - 2026.9.3 */
 
 console.info(
-  `%c BIGNUMBER-CARD-CONTINUED %c 2026.9.3 `,
+  `%c BIGNUMBER-CARD-CONTINUED %c 2026.9.23 `,
   'color: black; background: #F2720C; font-weight: 600;',
   'color: black; background: #00a5c9; font-weight: 600;'
 );
@@ -206,11 +206,43 @@ class BigNumberCard extends HTMLElement {
   // - navigate: Navigate to a Lovelace view
   // - url: Open an external URL
   // - none: Do nothing (disable tap action)
+  // Optional `confirmation` (true, or { text: '...' }) gates the action
+  // behind HA's native confirmation dialog (issue #16).
   _handleTapAction(actionConfig, entityId) {
     if (!actionConfig || actionConfig.action === 'none') {
       return;
     }
 
+    if (actionConfig.confirmation) {
+      this._confirmAction(actionConfig.confirmation, () => {
+        this._executeTapAction(actionConfig, entityId);
+      });
+      return;
+    }
+
+    this._executeTapAction(actionConfig, entityId);
+  }
+
+  // NEW: Show Home Assistant's own confirmation dialog (issue #16).
+  // Fires the same 'show-dialog' event HA's frontend uses internally for
+  // showConfirmationDialog(); dialog-box is always already registered by
+  // core, so no bundling/import is needed here.
+  _confirmAction(confirmation, onConfirm) {
+    const text = (confirmation && typeof confirmation === 'object' && confirmation.text)
+      || 'Are you sure you want to run this action?';
+
+    this._fire('show-dialog', {
+      dialogTag: 'dialog-box',
+      dialogImport: () => Promise.resolve(),
+      dialogParams: {
+        confirmation: true,
+        text: text,
+        confirm: onConfirm
+      }
+    });
+  }
+
+  _executeTapAction(actionConfig, entityId) {
     switch (actionConfig.action) {
       case 'more-info':
         this._fire('hass-more-info', { entityId: entityId });
@@ -557,14 +589,32 @@ class BigNumberCardEditor extends HTMLElement {
     if (field.startsWith('tap_action.')) {
       const subField = field.replace('tap_action.', '');
       const newTapAction = { ...(this._config.tap_action || { action: 'more-info' }) };
-      if (value === '' || value === undefined) {
+      let rerender = false;
+
+      // NEW: confirmation is bool-or-{text}, not a flat field (issue #16)
+      if (subField === 'confirmation') {
+        if (value) {
+          newTapAction.confirmation = true;
+        } else {
+          delete newTapAction.confirmation;
+        }
+        rerender = true;
+      } else if (subField === 'confirmation_text') {
+        if (value) {
+          newTapAction.confirmation = { text: value };
+        } else if (newTapAction.confirmation) {
+          newTapAction.confirmation = true;
+        }
+      } else if (value === '' || value === undefined) {
         delete newTapAction[subField];
       } else {
         newTapAction[subField] = value;
       }
       this._config = { ...this._config, tap_action: newTapAction };
-      // Re-render only for action type changes (shows/hides conditional fields)
-      if (subField === 'action') {
+      // Re-render only for action type / confirmation toggle changes
+      // (shows/hides conditional fields)
+      if (subField === 'action') rerender = true;
+      if (rerender) {
         this._rendered = false;
         this.render();
         this._rendered = true;
@@ -1118,6 +1168,20 @@ class BigNumberCardEditor extends HTMLElement {
       serviceDataNote.className = 'section-note';
       serviceDataNote.textContent = 'For service_data, use YAML editor';
       tapContent.appendChild(serviceDataNote);
+    }
+
+    // NEW: Confirmation dialog before the tap action runs (issue #16)
+    if (tapAction.action !== 'none') {
+      tapContent.appendChild(this._createSwitch('tap_action.confirmation', 'Require confirmation', Boolean(tapAction.confirmation)));
+
+      if (tapAction.confirmation) {
+        tapContent.appendChild(this._createTextfield(
+          'tap_action.confirmation_text',
+          'Confirmation text (optional)',
+          (typeof tapAction.confirmation === 'object' && tapAction.confirmation.text) || '',
+          'Defaults to "Are you sure you want to run this action?"'
+        ));
+      }
     }
 
     root.appendChild(this._createExpansionPanel('Tap Action', tapContent));
