@@ -285,14 +285,17 @@ class BigNumberCard extends HTMLElement {
   }
 
   // NEW: Call service helper (PR #48 - issue #41)
-  // Fires the call-service event to Home Assistant
+  // Calls hass.callService() directly (issue #16) - the legacy
+  // hass-call-service bubbling event this used to fire is no longer
+  // listened for by current Home Assistant frontends, so toggle/call-service
+  // tap actions silently did nothing.
   _callService(service, serviceData) {
+    if (!this._hass) {
+      console.warn('BigNumberCard: hass not available yet, cannot call service');
+      return;
+    }
     const [domain, serviceAction] = service.split('.');
-    this._fire('hass-call-service', {
-      service: serviceAction,
-      domain: domain,
-      service_data: serviceData || {}
-    });
+    this._hass.callService(domain, serviceAction, serviceData || {});
   }
 
   _computeSeverity(stateValue, sections) {
@@ -424,6 +427,12 @@ class BigNumberCard extends HTMLElement {
   }
 
   set hass(hass) {
+    // NEW: Retain the live hass reference so tap actions can call
+    // hass.callService() directly instead of the legacy hass-call-service
+    // bubbling event, which current Home Assistant frontends no longer
+    // listen for (issue #16).
+    this._hass = hass;
+
     const config = this._config;
     const root = this.shadowRoot;
 
