@@ -10,10 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2026.9.23] - 2026-09-23
 
 ### Added
-- `confirmation` option on `tap_action` (boolean, or `{ text: '...' }` for custom wording) to gate the action behind Home Assistant's native confirmation dialog before it runs (issue #16, requested by [@jordi-7](https://github.com/jordi-7)). Uses HA's own `show-dialog`/`dialog-box` event, the same mechanism `showConfirmationDialog()` uses internally, so no bundling or extra dependency is needed. Also exposed in the visual editor as a "Require confirmation" toggle with an optional custom text field under Tap Action. Configs without `confirmation` are unaffected.
+- `confirmation` option on `tap_action` (boolean, or `{ text: '...' }` for custom wording) to gate the action behind a confirmation prompt before it runs (issue #16, requested by [@jordi-7](https://github.com/jordi-7)). Uses the browser's native `confirm()`, since Home Assistant's internal `dialog-box` element is lazy-loaded via a webpack chunk path not exposed to third-party cards and isn't reliably available to fire it directly. Also exposed in the visual editor as a "Require confirmation" toggle with an optional custom text field under Tap Action. Configs without `confirmation` are unaffected.
 
 ### Fixed
 - `call-service` and `toggle` tap actions doing nothing (issue #16, reported by [@jordi-7](https://github.com/jordi-7)). They fired a legacy `hass-call-service` bubbling event that current Home Assistant frontends no longer listen for. The card now calls `hass.callService()` directly, the same way `more-info`/`navigate`/`url` already worked through other paths.
+- `confirmation` throwing `Uncaught Error: Unknown dialog type loaded` when tapped, from an earlier build of this pre-release that tried to use HA's internal confirmation dialog (see Added, above).
 
 **Pre-release for testing** — feedback welcome before this is promoted to a stable release.
 

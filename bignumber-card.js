@@ -223,23 +223,21 @@ class BigNumberCard extends HTMLElement {
     this._executeTapAction(actionConfig, entityId);
   }
 
-  // NEW: Show Home Assistant's own confirmation dialog (issue #16).
-  // Fires the same 'show-dialog' event HA's frontend uses internally for
-  // showConfirmationDialog(); dialog-box is always already registered by
-  // core, so no bundling/import is needed here.
+  // NEW: Confirm before running a tap action (issue #16).
+  // Uses the native browser confirm() dialog rather than HA's internal
+  // dialog-box element: dialog-box is lazy-loaded by HA's frontend via a
+  // webpack chunk path that isn't exposed to third-party cards, so it is
+  // only available if something else in the session has already loaded it.
+  // Firing 'show-dialog' for it without that guarantee throws "Unknown
+  // dialog type loaded" (confirmed against a live HA instance). confirm()
+  // always works, with no dependency on HA's internal loading state.
   _confirmAction(confirmation, onConfirm) {
     const text = (confirmation && typeof confirmation === 'object' && confirmation.text)
       || 'Are you sure you want to run this action?';
 
-    this._fire('show-dialog', {
-      dialogTag: 'dialog-box',
-      dialogImport: () => Promise.resolve(),
-      dialogParams: {
-        confirmation: true,
-        text: text,
-        confirm: onConfirm
-      }
-    });
+    if (window.confirm(text)) {
+      onConfirm();
+    }
   }
 
   _executeTapAction(actionConfig, entityId) {
