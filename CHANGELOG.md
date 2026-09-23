@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.9.23.1] - 2026-09-23
+
+Re-tagged as a new version, same code as the final state of 2026.9.23 below - HACS was not picking up the in-place tag updates on 2026.9.23.
+
+**Pre-release for testing** — feedback welcome before this is promoted to a stable release.
+
 ## [2026.9.23] - 2026-09-23
 
 ### Added
