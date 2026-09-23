@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.9.24] - 2026-09-24
+
+Promotes 2026.9.23.1 to stable.
+
+### Added
+- `confirmation` option on `tap_action` (boolean, or `{ text: '...' }` for custom wording) to gate the action behind a confirmation prompt before it runs (issue #16, requested by [@jordi-7](https://github.com/jordi-7)). Uses the browser's native `confirm()`. Also exposed in the visual editor as a "Require confirmation" toggle with an optional custom text field under Tap Action. Configs without `confirmation` are unaffected.
+
+### Fixed
+- `call-service` and `toggle` tap actions doing nothing (issue #16). They fired a legacy `hass-call-service` bubbling event that current Home Assistant frontends no longer listen for. The card now calls `hass.callService()` directly.
+
 ## [2026.9.23.1] - 2026-09-23
 
 Re-tagged as a new version, same code as the final state of 2026.9.23 below - HACS was not picking up the in-place tag updates on 2026.9.23.
