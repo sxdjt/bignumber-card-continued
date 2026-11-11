@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.11.10] - 2026-11-10
+
 ### Fixed
 - Visual editor accessibility (WCAG 2.x AA):
   - Toggles (Hide unit, Fill container height, Thousands separators, Require confirmation) now announce their label to screen readers.
@@ -17,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Each Remove button has a distinct accessible name (e.g. "Remove severity level 2").
   - Focus moves to the Add Severity Level button after a severity level is removed, instead of being lost.
   - Invalid colors now show an inline error message, announced to screen readers.
+  - Optional fields no longer show a required asterisk (*). Only the main Entity and each severity level's Value are marked required.
 
 ## [2026.9.24] - 2026-09-24
 

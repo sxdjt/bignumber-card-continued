@@ -1,7 +1,7 @@
 /* Last modified: 03-Sep-2026 - 2026.9.3 */
 
 console.info(
-  `%c BIGNUMBER-CARD-CONTINUED %c 2026.11.10b2 `,
+  `%c BIGNUMBER-CARD-CONTINUED %c 2026.11.10 `,
   'color: black; background: #F2720C; font-weight: 600;',
   'color: black; background: #00a5c9; font-weight: 600;'
 );
@@ -647,6 +647,8 @@ class BigNumberCardEditor extends HTMLElement {
 
     const selector = document.createElement('ha-selector');
     selector.hass = this._hass;
+    // ha-selector marks fields required (label asterisk) unless told otherwise
+    selector.required = false;
     selector.label = label;
     if (type === 'number') {
       selector.selector = { number: { mode: 'box', step: 1 } };
@@ -706,6 +708,8 @@ class BigNumberCardEditor extends HTMLElement {
 
     const selector = document.createElement('ha-selector');
     selector.hass = this._hass;
+    // ha-selector marks fields required (label asterisk) unless told otherwise
+    selector.required = false;
     selector.label = label;
     selector.selector = { text: {} };
     selector.value = value ?? '';
@@ -796,12 +800,13 @@ class BigNumberCardEditor extends HTMLElement {
     return container;
   }
 
-  _createEntityPicker(field, label, value) {
+  _createEntityPicker(field, label, value, required = false) {
     const container = document.createElement('div');
     container.className = 'field';
 
     const selector = document.createElement('ha-selector');
     selector.hass = this._hass;
+    selector.required = required;
     selector.selector = { entity: {} };
     selector.value = value || '';
     selector.label = label;
@@ -1127,7 +1132,7 @@ class BigNumberCardEditor extends HTMLElement {
     const basicSection = document.createElement('div');
     basicSection.innerHTML = '<h3>Basic Settings</h3>';
 
-    basicSection.appendChild(this._createEntityPicker('entity', 'Entity', this._config.entity));
+    basicSection.appendChild(this._createEntityPicker('entity', 'Entity', this._config.entity, true));
     basicSection.appendChild(this._createTextfield('title', 'Title', this._config.title));
 
     root.appendChild(basicSection);
