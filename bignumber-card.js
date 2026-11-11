@@ -1,7 +1,7 @@
 /* Last modified: 03-Sep-2026 - 2026.9.3 */
 
 console.info(
-  `%c BIGNUMBER-CARD-CONTINUED %c 2026.9.24 `,
+  `%c BIGNUMBER-CARD-CONTINUED %c 2026.11.10b2 `,
   'color: black; background: #F2720C; font-weight: 600;',
   'color: black; background: #00a5c9; font-weight: 600;'
 );
@@ -696,7 +696,11 @@ class BigNumberCardEditor extends HTMLElement {
   // native color-picker swatch for quick visual selection. Picking from the
   // swatch writes a hex value; typing a resolvable color updates the swatch.
   // onChange(value) is called with the new string value on either interaction.
-  _createColorInput(label, value, onChange) {
+  // pickerLabel names the swatch for screen readers; pass a unique one when the
+  // same visible label repeats (e.g. per severity row).
+  _createColorInput(label, value, onChange, pickerLabel = `${label} picker`) {
+    const wrapper = document.createElement('div');
+
     const container = document.createElement('div');
     container.className = 'color-input';
 
@@ -710,12 +714,40 @@ class BigNumberCardEditor extends HTMLElement {
     swatch.type = 'color';
     swatch.className = 'color-swatch';
     swatch.title = 'Pick a color';
+    swatch.setAttribute('aria-label', pickerLabel);
     const initialHex = this._resolveColorToHex(value);
     if (initialHex) swatch.value = initialHex;
+
+    // Live region exists from the start so screen readers announce the error
+    // when it appears; it is empty while the value is valid or blank.
+    const error = document.createElement('div');
+    error.className = 'error-text';
+    error.setAttribute('aria-live', 'polite');
+    // Rebuild only when validity flips, so the live region announces once per
+    // transition rather than on every keystroke while the value stays invalid.
+    let shown = false;
+    const updateError = (v) => {
+      const invalid = Boolean(v) && !CSS.supports('color', v);
+      if (invalid === shown) return;
+      shown = invalid;
+      wrapper.classList.toggle('invalid', invalid);
+      error.replaceChildren();
+      if (!invalid) return;
+      const icon = document.createElement('ha-icon');
+      icon.icon = 'mdi:alert-circle';
+      icon.setAttribute('aria-hidden', 'true');
+      const prefix = document.createElement('strong');
+      prefix.textContent = 'Error: ';
+      const message = document.createElement('span');
+      message.append(prefix, `${label} is not a valid color. Use a hex code (#FF0000), a color name (green), or var(--token).`);
+      error.append(icon, message);
+    };
+    updateError(value);
 
     selector.addEventListener('value-changed', (e) => {
       e.stopPropagation();
       onChange(e.detail.value);
+      updateError(e.detail.value);
       // Keep the swatch in sync when the typed value resolves to a color.
       const hex = this._resolveColorToHex(e.detail.value);
       if (hex) swatch.value = hex;
@@ -725,11 +757,14 @@ class BigNumberCardEditor extends HTMLElement {
       const picked = e.target.value; // always "#rrggbb"
       selector.value = picked;
       onChange(picked);
+      updateError(picked);
     });
 
     container.appendChild(selector);
     container.appendChild(swatch);
-    return container;
+    wrapper.appendChild(container);
+    wrapper.appendChild(error);
+    return wrapper;
   }
 
   // Top-level color config field (wraps _createColorInput and writes the value
@@ -745,10 +780,12 @@ class BigNumberCardEditor extends HTMLElement {
     const container = document.createElement('div');
     container.className = 'toggle-row';
 
-    const labelEl = document.createElement('label');
+    const labelEl = document.createElement('span');
     labelEl.textContent = label;
 
     const toggle = document.createElement('ha-switch');
+    // A <label> cannot reach into ha-switch's shadow root, so name the switch directly
+    toggle.setAttribute('aria-label', label);
     toggle.checked = checked || false;
     toggle.addEventListener('change', (e) => {
       this._valueChanged(field, e.target.checked);
@@ -780,12 +817,17 @@ class BigNumberCardEditor extends HTMLElement {
     const container = document.createElement('div');
     container.className = 'field';
 
+    // Native <select> lives in this shadow root, so for/id association works
+    const selectId = `select-${field.replace(/\./g, '-')}`;
+
     const labelEl = document.createElement('label');
     labelEl.textContent = label;
     labelEl.className = 'select-label';
+    labelEl.htmlFor = selectId;
 
     const select = document.createElement('select');
     select.className = 'ha-select';
+    select.id = selectId;
     options.forEach(opt => {
       const option = document.createElement('option');
       option.value = opt.value;
@@ -832,20 +874,26 @@ class BigNumberCardEditor extends HTMLElement {
     const fillField = this._createColorInput(
       'Fill Color',
       sev.fill_color || sev.bnStyle || '',
-      (newValue) => this._updateSeverity(index, 'fill_color', newValue)
+      (newValue) => this._updateSeverity(index, 'fill_color', newValue),
+      `Severity level ${index + 1} fill color picker`
     );
 
     // Text color field (use new standard name, read from either for backwards compat)
     const textField = this._createColorInput(
       'Text Color',
       sev.text_color || sev.color || '',
-      (newValue) => this._updateSeverity(index, 'text_color', newValue)
+      (newValue) => this._updateSeverity(index, 'text_color', newValue),
+      `Severity level ${index + 1} text color picker`
     );
 
-    // Remove button
+    // Remove button; hidden suffix gives each one a distinct accessible name
     const removeBtn = document.createElement('button');
     removeBtn.className = 'remove-button';
     removeBtn.textContent = 'Remove';
+    const removeContext = document.createElement('span');
+    removeContext.className = 'visually-hidden';
+    removeContext.textContent = ` severity level ${index + 1}`;
+    removeBtn.appendChild(removeContext);
     removeBtn.addEventListener('click', () => {
       this._removeSeverity(index);
     });
@@ -888,6 +936,8 @@ class BigNumberCardEditor extends HTMLElement {
     this._fireConfigChanged();
     // Rebuild just the severity list, not the whole editor
     this._rebuildSeverityList();
+    // The rebuild destroyed the focused Remove button; move focus somewhere stable
+    this.shadowRoot?.querySelector('.add-button')?.focus();
   }
 
   _rebuildSeverityList() {
@@ -939,8 +989,10 @@ class BigNumberCardEditor extends HTMLElement {
         margin-bottom: 12px;
         font-style: italic;
       }
+      /* Primary text color + underline: --primary-color is under 4.5:1 for small text on white */
       .section-note a {
-        color: var(--primary-color);
+        color: var(--primary-text-color);
+        text-decoration: underline;
       }
       .toggle-row {
         display: flex;
@@ -948,7 +1000,7 @@ class BigNumberCardEditor extends HTMLElement {
         align-items: center;
         padding: 8px 0;
       }
-      .toggle-row label {
+      .toggle-row span {
         font-size: 14px;
         color: var(--primary-text-color);
       }
@@ -968,14 +1020,14 @@ class BigNumberCardEditor extends HTMLElement {
         width: 100%;
         padding: 8px 12px;
         font-size: 14px;
-        border: 1px solid var(--divider-color);
+        /* Secondary text color meets the 3:1 non-text contrast minimum; --divider-color does not */
+        border: 1px solid var(--secondary-text-color, #727272);
         border-radius: 4px;
         background-color: var(--card-background-color, #fff);
         color: var(--primary-text-color);
         cursor: pointer;
       }
       .ha-select:focus {
-        outline: none;
         border-color: var(--primary-color);
       }
       .severity-list {
@@ -1006,33 +1058,66 @@ class BigNumberCardEditor extends HTMLElement {
         width: 42px;
         height: 42px;
         padding: 2px;
-        border: 1px solid var(--divider-color);
+        border: 1px solid var(--secondary-text-color, #727272);
         border-radius: 6px;
         background: var(--card-background-color, #fff);
         cursor: pointer;
       }
+      /* Outlined buttons with primary text color: white text on --primary-color
+         or --error-color is under 4.5:1 on HA's default theme. Borders stay >= 3:1. */
       .add-button, .remove-button {
         padding: 8px 16px;
-        border: none;
         border-radius: 4px;
         cursor: pointer;
+        font-family: inherit;
         font-size: 14px;
+        background-color: transparent;
+        color: var(--primary-text-color);
       }
       .add-button {
-        background-color: var(--primary-color);
-        color: var(--text-primary-color, #fff);
+        border: 1px solid var(--secondary-text-color, #727272);
         width: 100%;
       }
-      .add-button:hover {
-        opacity: 0.9;
-      }
       .remove-button {
-        background-color: var(--error-color, #db4437);
-        color: white;
+        border: 1px solid var(--error-color, #db4437);
         padding: 8px 12px;
       }
-      .remove-button:hover {
-        opacity: 0.9;
+      .add-button:hover, .remove-button:hover {
+        background-color: var(--secondary-background-color, #f5f5f5);
+      }
+      /* Text stays primary color for 4.5:1; red is used only on non-text parts
+         (bar, icon, swatch border), which need 3:1 */
+      .error-text {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--primary-text-color);
+        margin-top: 6px;
+        padding: 4px 8px;
+        border-left: 3px solid var(--error-color, #db4437);
+      }
+      .error-text ha-icon {
+        flex: 0 0 auto;
+        color: var(--error-color, #db4437);
+        --mdc-icon-size: 16px;
+      }
+      .invalid .color-swatch {
+        border: 2px solid var(--error-color, #db4437);
+      }
+      .error-text:empty {
+        display: none;
+      }
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
     `;
 

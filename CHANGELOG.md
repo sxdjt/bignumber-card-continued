@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Visual editor accessibility (WCAG 2.x AA):
+  - Toggles (Hide unit, Fill container height, Thousands separators, Require confirmation) now announce their label to screen readers.
+  - Dropdowns (Unit position, Fill direction, Tap action) are now associated with their labels.
+  - Dropdown and color-swatch borders now meet 3:1 non-text contrast, and dropdowns keep a visible focus outline.
+  - Add/Remove buttons and section-note links now meet 4.5:1 text contrast. Buttons are now outlined instead of filled.
+  - Each color swatch has a distinct accessible name (e.g. "Severity level 2 fill color picker") instead of "Pick a color".
+  - Each Remove button has a distinct accessible name (e.g. "Remove severity level 2").
+  - Focus moves to the Add Severity Level button after a severity level is removed, instead of being lost.
+  - Invalid colors now show an inline error message, announced to screen readers.
+
 ## [2026.9.24] - 2026-09-24
 
 Promotes 2026.9.23.1 to stable.
