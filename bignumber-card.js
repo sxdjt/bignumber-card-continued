@@ -1,13 +1,15 @@
 /* Last modified: 03-Sep-2026 - 2026.9.3 */
 
 console.info(
-  `%c BIGNUMBER-CARD-CONTINUED %c 2026.11.10 `,
+  `%c BIGNUMBER-CARD-CONTINUED %c 2026.11.10.1b3 `,
   'color: black; background: #F2720C; font-weight: 600;',
   'color: black; background: #00a5c9; font-weight: 600;'
 );
 
 class BigNumberCard extends HTMLElement {
-  _DEFAULT_STYLE(){return 'var(--label-badge-blue)';}
+  // Default fill. --label-badge-blue (#039be5) gives 6.0:1 under HA's light-mode text
+  // but only 2.4:1 under dark-mode text (#e1e1e1), so dark mode uses a darker blue (5.7:1).
+  _DEFAULT_STYLE(){return this._hass?.themes?.darkMode ? '#01579b' : 'var(--label-badge-blue)';}
   _DEFAULT_COLOR(){return 'var(--primary-text-color)';}
 
   static getConfigElement() {
@@ -39,7 +41,9 @@ class BigNumberCard extends HTMLElement {
     const cardConfig = Object.assign({}, config);
     if (!cardConfig.scale) cardConfig.scale = "50px";
     if (!cardConfig.from) cardConfig.from = "left";
-    if (!cardConfig.opacity) cardConfig.opacity = "0.5";
+    // 0.7 keeps the unit visibly de-emphasized while meeting 3:1 (large text) on the
+    // default progress-bar fill; 0.5 was 2.5:1
+    if (!cardConfig.opacity) cardConfig.opacity = "0.7";
     if (!cardConfig.noneString) cardConfig.noneString = null;
     if (!cardConfig.noneCardClass) cardConfig.noneCardClass = null;
     if (!cardConfig.noneValueClass) cardConfig.noneValueClass = null;
@@ -490,13 +494,16 @@ class BigNumberCard extends HTMLElement {
     // entity changes. A display_entity can update while the primary is unchanged (and
     // vice versa), so both are tracked. Colors are rewritten on a display-only change
     // too; setProperty with an unchanged value is cheap, and this keeps the update in
-    // one block rather than splitting it.
-    if (entityState !== this._entityState || displayState !== this._displayState) {
+    // one block rather than splitting it. A light/dark mode switch also repaints,
+    // because the default fill color depends on it.
+    const darkMode = Boolean(hass.themes?.darkMode);
+    if (entityState !== this._entityState || displayState !== this._displayState || darkMode !== this._darkMode) {
       root.querySelector("ha-card").style.setProperty('--bignumber-fill-color', `${this._getFillColor(entityState, config)}`);
       root.querySelector("ha-card").style.setProperty('--bignumber-text-color', `${this._getTextColor(entityState, config)}`);
       root.querySelector("ha-card").style.setProperty('--bignumber-background-color', `${this._getBackgroundColor(entityState, config)}`);
       this._entityState = entityState
       this._displayState = displayState
+      this._darkMode = darkMode
       // NEW: Use locale-aware formatting (PR #46 - issue #45)
       // None detection stays on the PRIMARY entity: a display template producing
       // "unavailable / unavailable" is non-numeric even when the primary sensor is fine.
@@ -1038,15 +1045,32 @@ class BigNumberCardEditor extends HTMLElement {
       .severity-list {
         margin-bottom: 12px;
       }
+      /* Wrapping flex row instead of a fixed 4-column grid: at phone width the
+         grid left each color text field about 20px wide (WCAG 1.4.10 reflow) */
       .severity-item {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr auto;
+        display: flex;
+        flex-wrap: wrap;
         gap: 8px;
         margin-bottom: 8px;
-        align-items: end;
+        padding-bottom: 8px;
+        /* Top-aligned: the number selector reserves space below its box, so
+           bottom alignment left the Value box higher than the color fields */
+        align-items: flex-start;
+        border-bottom: 1px solid var(--divider-color);
       }
-      .severity-item ha-selector {
+      .severity-item > ha-selector {
         display: block;
+        flex: 1 1 90px;
+      }
+      .severity-item > div {
+        flex: 1 1 170px;
+        min-width: 0;
+      }
+      /* Same height and offset as the swatch, so both center on the 56px field */
+      .severity-item > .remove-button {
+        flex: 0 0 auto;
+        height: 42px;
+        margin-top: 7px;
       }
       .color-input {
         display: flex;
@@ -1177,7 +1201,7 @@ class BigNumberCardEditor extends HTMLElement {
     colorsContent.appendChild(this._createColorField('text_color', 'Text color', this._config.text_color || this._config.color));
     colorsContent.appendChild(this._createColorField('fill_color', 'Fill color (bar/background)', this._config.fill_color || this._config.bnStyle));
     colorsContent.appendChild(this._createColorField('background_color', 'Background color (unfilled portion)', this._config.background_color));
-    colorsContent.appendChild(this._createTextfield('opacity', 'Unit text opacity', this._config.opacity || '0.5', 'Value between 0 and 1'));
+    colorsContent.appendChild(this._createTextfield('opacity', 'Unit text opacity', this._config.opacity || '0.7', 'Value between 0 and 1'));
 
     root.appendChild(this._createExpansionPanel('Colors', colorsContent));
 

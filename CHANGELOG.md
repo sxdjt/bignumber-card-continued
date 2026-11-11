@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Dark theme: the default progress-bar fill is now a darker blue (#01579b), so the default text is readable on it (5.7:1, previously 2.4:1). Light theme is unchanged. Configs that set `fill_color` or severity colors are unaffected.
+- Visual editor: severity level rows now wrap on narrow screens instead of squeezing the color fields to about 20px wide.
+- Visual editor: severity level fields now line up. The Value box sat about 20px higher than the Fill Color box, and the Remove button sat lower than the swatch beside it.
+
+### Changed
+- Default unit text `opacity` is now `0.7` (was `0.5`), so the unit meets 3:1 contrast on the default progress-bar fill (3.6-3.8:1, previously 2.5:1). Configs that set `opacity` are unaffected.
+
 ## [2026.11.10] - 2026-11-10
 
 ### Fixed
