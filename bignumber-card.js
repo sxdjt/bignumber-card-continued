@@ -1,7 +1,7 @@
 /* Last modified: 03-Sep-2026 - 2026.9.3 */
 
 console.info(
-  `%c BIGNUMBER-CARD-CONTINUED %c 2026.11.11 `,
+  `%c BIGNUMBER-CARD-CONTINUED %c 2026.11.12 `,
   'color: black; background: #F2720C; font-weight: 600;',
   'color: black; background: #00a5c9; font-weight: 600;'
 );
@@ -828,8 +828,13 @@ class BigNumberCardEditor extends HTMLElement {
     labelEl.textContent = label;
 
     const toggle = document.createElement('ha-switch');
-    // A <label> cannot reach into ha-switch's shadow root, so name the switch directly
+    // In current HA (Web Awesome) only slotted text names the switch's inner input, so the
+    // label is slotted visually hidden; the host aria-label covers older MWC-based releases.
     toggle.setAttribute('aria-label', label);
+    const switchName = document.createElement('span');
+    switchName.className = 'visually-hidden';
+    switchName.textContent = label;
+    toggle.appendChild(switchName);
     toggle.dataset.field = field;
     toggle.checked = checked || false;
     toggle.addEventListener('change', (e) => {
