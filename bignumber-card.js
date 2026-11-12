@@ -1,7 +1,7 @@
 /* Last modified: 03-Sep-2026 - 2026.9.3 */
 
 console.info(
-  `%c BIGNUMBER-CARD-CONTINUED %c 2026.11.10.1b3 `,
+  `%c BIGNUMBER-CARD-CONTINUED %c 2026.11.11 `,
   'color: black; background: #F2720C; font-weight: 600;',
   'color: black; background: #00a5c9; font-weight: 600;'
 );
@@ -165,6 +165,13 @@ class BigNumberCard extends HTMLElement {
         z-index: 1;
       }
       #value small{opacity: ${cardConfig.opacity}${cardConfig.unit_font_size ? `; font-size: ${cardConfig.unit_font_size}` : ''}}
+      ha-card[role='button'] {
+        cursor: pointer;
+      }
+      ha-card:focus-visible {
+        outline: 2px solid var(--primary-text-color);
+        outline-offset: 2px;
+      }
       #title {
         font-size: ${titleFontSize};
         line-height: ${titleFontSize};
@@ -183,6 +190,19 @@ class BigNumberCard extends HTMLElement {
     card.addEventListener('click', event => {
       this._handleTapAction(cardConfig.tap_action, cardConfig.entity);
     });
+
+    // Keyboard access to the tap action: the card is focusable and acts as a
+    // button (its name comes from the title and value) unless the action is none
+    if (cardConfig.tap_action.action !== 'none') {
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          this._handleTapAction(cardConfig.tap_action, cardConfig.entity);
+        }
+      });
+    }
 
     root.appendChild(card);
     this._config = cardConfig;
@@ -629,12 +649,24 @@ class BigNumberCardEditor extends HTMLElement {
       // (shows/hides conditional fields)
       if (subField === 'action') rerender = true;
       if (rerender) {
+        const openPanels = [...this.shadowRoot.querySelectorAll('ha-expansion-panel')]
+          .filter(panel => panel.expanded)
+          .map(panel => panel.header);
         this._rendered = false;
         this.render();
         this._rendered = true;
         // render() sets _initializing=true to suppress spurious select events,
         // but this config change is a real user action - fire it unconditionally.
         this._initializing = false;
+        // render() rebuilt the whole editor: reopen the panels that were open and put
+        // focus back on the control that changed, instead of the top of the dialog
+        const reopened = [...this.shadowRoot.querySelectorAll('ha-expansion-panel')]
+          .filter(panel => openPanels.includes(panel.header));
+        reopened.forEach(panel => { panel.expanded = true; });
+        // focus() is ignored until the reopened panel has rendered its content
+        Promise.all(reopened.map(panel => panel.updateComplete)).then(() => {
+          this.shadowRoot.querySelector(`[data-field="${field}"]`)?.focus();
+        });
       }
     } else {
       if (value === '' || value === undefined) {
@@ -657,6 +689,7 @@ class BigNumberCardEditor extends HTMLElement {
     // ha-selector marks fields required (label asterisk) unless told otherwise
     selector.required = false;
     selector.label = label;
+    if (helperText) selector.helper = helperText;
     if (type === 'number') {
       selector.selector = { number: { mode: 'box', step: 1 } };
     } else {
@@ -797,6 +830,7 @@ class BigNumberCardEditor extends HTMLElement {
     const toggle = document.createElement('ha-switch');
     // A <label> cannot reach into ha-switch's shadow root, so name the switch directly
     toggle.setAttribute('aria-label', label);
+    toggle.dataset.field = field;
     toggle.checked = checked || false;
     toggle.addEventListener('change', (e) => {
       this._valueChanged(field, e.target.checked);
@@ -840,6 +874,7 @@ class BigNumberCardEditor extends HTMLElement {
     const select = document.createElement('select');
     select.className = 'ha-select';
     select.id = selectId;
+    select.dataset.field = field;
     options.forEach(opt => {
       const option = document.createElement('option');
       option.value = opt.value;
