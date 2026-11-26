@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- The value and unit are built from text, not `innerHTML`. A `display_entity` state or a `unit_of_measurement` containing markup was rendered as HTML (for example an `<img onerror>`).
+
 ## [2026.11.12] - 2026-11-12
 
 Accessibility improvements (screen reader).

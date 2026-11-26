@@ -529,13 +529,15 @@ class BigNumberCard extends HTMLElement {
       // "unavailable / unavailable" is non-numeric even when the primary sensor is fine.
       const numValue = parseFloat(entityState);
       let value = this._formatNumber(displayState, config);
+      // Built from text nodes, never innerHTML: the value can be any entity state (a
+      // display_entity template, an MQTT sensor) and the unit comes from the entity too
       if (config.hideunit==true)
         { root.getElementById("value").textContent = `${value}`; }
       else {
-        const unitHtml = `<small>${measurement}</small>`;
-        root.getElementById("value").innerHTML = config.unit_position === 'left'
-          ? `${unitHtml}${value}`
-          : `${value}${unitHtml}`;
+        const unitEl = document.createElement('small');
+        unitEl.textContent = measurement;
+        const parts = config.unit_position === 'left' ? [unitEl, `${value}`] : [`${value}`, unitEl];
+        root.getElementById("value").replaceChildren(...parts);
       }
       if (this.isNoneConfig){
         // NEW: Fixed None detection bug - check numeric value instead of formatted string (PR #46)

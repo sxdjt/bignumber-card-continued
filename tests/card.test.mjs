@@ -40,18 +40,25 @@ describe('value', () => {
   });
 
   // BN1 (B11/D6): value and unit are written with innerHTML
-  test('a display state cannot inject markup', { todo: 'value and unit go through innerHTML unescaped' }, () => {
+  test('a display state cannot inject markup', () => {
     const card = makeCard(
       { entity: 'sensor.p', display_entity: 'sensor.text' },
       makeHass({ 'sensor.p': W('1'), 'sensor.text': '<img src=x onerror=alert(1)>' }),
     );
     assert.equal(valueEl(card).querySelectorAll('img').length, 0, 'injected <img> was rendered');
-    assert.equal(valueEl(card).textContent, '<img src=x onerror=alert(1)>W');
+    assert.equal(valueEl(card).textContent, '<img src=x onerror=alert(1)>');  // unit comes from the display entity, which has none
   });
 
-  test('a unit_of_measurement cannot inject markup', { todo: 'unit goes through innerHTML unescaped' }, () => {
+  test('a unit_of_measurement cannot inject markup', () => {
     const card = makeCard({ entity: 'sensor.p' }, makeHass({ 'sensor.p': stateObj('1', { unit_of_measurement: '<b>W</b>' }) }));
     assert.equal(valueEl(card).querySelectorAll('b').length, 0, 'unit markup was rendered');
+    assert.equal(valueEl(card).querySelector('small').textContent, '<b>W</b>');
+  });
+
+  test('unit_position left puts the unit first', () => {
+    const card = makeCard({ entity: 'sensor.p', unit_position: 'left', unit: '£' }, makeHass({ 'sensor.p': '5.06' }));
+    assert.equal(valueEl(card).firstChild.nodeName, 'SMALL');
+    assert.equal(valueEl(card).textContent, '£5.06');
   });
 
   // BN6 (B8): setConfig rebuilds the card, but cached state skips the next repaint
