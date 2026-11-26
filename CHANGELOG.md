@@ -3,15 +3,33 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this project uses [CalVer](https://calver.org/) (`YYYY.M.D`) versioning (SemVer before 2026).
 
 ## [Unreleased]
 
 ### Added
 - Visual editor: Minimum and Maximum entity attribute fields (`min_entity_attribute`, `max_entity_attribute`), so a bound can come from an attribute such as a thermostat's `max_temp` without YAML.
 
-### Changed
-- Default unit text `opacity` is now `0.7` (was `0.5`), so the unit meets 3:1 contrast on the default progress-bar fill (3.6-3.8:1, previously 2.5:1). Configs that set `opacity` are unaffected.
+### Fixed
+- After a saved edit, the card shows its value right away. Home Assistant reuses the card on the dashboard, and the card skipped repainting while the entity's state was unchanged, so it stayed blank until the entity next changed.
+- Visual editor: a severity value of 0 is kept. Typing 0 removed the value, so that severity level never matched.
+- Visual editor: after a YAML edit, the fields and severity rows show the new config. The editor only drew its fields once, so it kept showing the old values.
+- `opacity: 0` is kept (the unit is fully transparent). It was replaced by the default 0.7, and the editor showed 0.7.
+- A `round` outside 0-20 no longer stops the card updating (a negative value threw an error); it is clamped. The editor's Decimal places field is limited to 0-20.
+- Holding Enter or Space runs the tap action once; key auto-repeat ran it again and again (a toggle flipped repeatedly).
+- Visual editor: editing Text color or Fill color removes the deprecated `color` / `bnStyle` key it replaces. The old key stayed in the config, kept applying, and reappeared when the new field was cleared.
+
+### Security
+- The value and unit are built from text, not `innerHTML`. A `display_entity` state or a `unit_of_measurement` containing markup was rendered as HTML (for example an `<img onerror>`).
+
+## [2026.11.12] - 2026-11-12
+
+Accessibility improvements (screen reader).
+
+### Fixed
+- Visual editor: switches are announced by name in current Home Assistant.
+
+## [2026.11.11] - 2026-11-11
 
 ### Fixed
 - Keyboard: the card can be focused and runs its tap action with Enter or Space (unless the action is `none`).
@@ -20,12 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dark theme: the default progress-bar fill is now a darker blue (#01579b), so the default text is readable on it (5.7:1, previously 2.4:1). Light theme is unchanged. Configs that set `fill_color` or severity colors are unaffected.
 - Visual editor: severity level rows now wrap on narrow screens instead of squeezing the color fields to about 20px wide.
 - Visual editor: severity level fields now line up. The Value box sat about 20px higher than the Fill Color box, and the Remove button sat lower than the swatch beside it.
-- Visual editor: editing Text color or Fill color removes the deprecated `color` / `bnStyle` key it replaces. The old key stayed in the config, kept applying, and reappeared when the new field was cleared.
 
-### Security
-- The value and unit are built from text, not `innerHTML`. A `display_entity` state or a `unit_of_measurement` containing markup was rendered as HTML (for example an `<img onerror>`).## [2026.11.12] - 2026-11-12
+### Changed
+- Default unit text `opacity` is now `0.7` (was `0.5`), so the unit meets 3:1 contrast on the default progress-bar fill (3.6-3.8:1, previously 2.5:1). Configs that set `opacity` are unaffected.
 
-Accessibility improvements (screen reader).
 ## [2026.11.10] - 2026-11-10
 
 ### Fixed
