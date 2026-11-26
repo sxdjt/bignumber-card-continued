@@ -692,13 +692,18 @@ class BigNumberCardEditor extends HTMLElement {
         });
       }
     } else {
+      const newConfig = { ...this._config };
       if (value === '' || value === undefined) {
-        const newConfig = { ...this._config };
         delete newConfig[field];
-        this._config = newConfig;
       } else {
-        this._config = { ...this._config, [field]: value };
+        newConfig[field] = value;
       }
+      // The color fields show a deprecated key's value when the new key is unset. Once
+      // edited, drop the deprecated key, or it stays in the config and comes back as
+      // soon as the new field is cleared (same as the severity rows do).
+      const deprecated = { text_color: 'color', fill_color: 'bnStyle' }[field];
+      if (deprecated) delete newConfig[deprecated];
+      this._config = newConfig;
     }
     this._fireConfigChanged();
   }

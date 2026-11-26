@@ -34,4 +34,4 @@ The target is 100% function and branch coverage of `bignumber-card.js`.
 
 Record a known bug as a test with the `todo` option, describing the intended behavior. It runs and reports as `todo` without failing the suite. When a fix lands, remove the `todo` option so the test guards against regressions. A `todo` test reports the same whether it passes or fails; check with `--test-reporter=tap` that each one is `not ok`.
 
-Open `todo` tests: see `npm test` output.
+There are no open `todo` tests.

@@ -67,3 +67,15 @@ describe('progress bar fields', () => {
     assert.equal(lastConfig(editor).min_entity_attribute, 'min_temp');
   });
 });
+
+describe('deprecated color names', () => {
+  test('editing Text color replaces a deprecated color key', async () => {
+    const editor = await makeEditor({ entity: 'sensor.p', color: 'red', bnStyle: 'blue' });
+    fireValue(control(editor, 'Text color'), 'green');
+    fireValue(control(editor, 'Fill color (bar/background)'), 'black');
+    assert.equal('color' in lastConfig(editor), false);
+    assert.equal('bnStyle' in lastConfig(editor), false);
+    fireValue(control(editor, 'Text color'), '');
+    assert.equal('color' in lastConfig(editor), false);
+  });
+});
