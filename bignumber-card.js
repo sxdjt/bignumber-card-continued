@@ -1297,7 +1297,9 @@ class BigNumberCardEditor extends HTMLElement {
     progressContent.appendChild(this._createTextfield('min', 'Minimum value', this._config.min, null, 'number'));
     progressContent.appendChild(this._createTextfield('max', 'Maximum value', this._config.max, null, 'number'));
     progressContent.appendChild(this._createEntityPicker('min_entity', 'Minimum from entity (optional)', this._config.min_entity));
+    progressContent.appendChild(this._createTextfield('min_entity_attribute', 'Minimum entity attribute (optional)', this._config.min_entity_attribute, 'Read this attribute of the minimum entity instead of its state, e.g. min_temp'));
     progressContent.appendChild(this._createEntityPicker('max_entity', 'Maximum from entity (optional)', this._config.max_entity));
+    progressContent.appendChild(this._createTextfield('max_entity_attribute', 'Maximum entity attribute (optional)', this._config.max_entity_attribute, 'Read this attribute of the maximum entity instead of its state, e.g. max_temp'));
     progressContent.appendChild(this._createSelect('from', 'Fill direction', this._config.from || 'left', [
       { value: 'left', label: 'Left to Right' },
       { value: 'right', label: 'Right to Left' },

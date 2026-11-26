@@ -58,3 +58,12 @@ describe('setConfig after the first render', () => {
     assert.ok(control(editor, 'Title') === field, 'title field was rebuilt');
   });
 });
+
+describe('progress bar fields', () => {
+  test('min/max entity attribute fields exist', async () => {
+    const editor = await makeEditor({ entity: 'sensor.p', max_entity: 'climate.x', max_entity_attribute: 'max_temp' });
+    assert.equal(control(editor, 'Maximum entity attribute (optional)').value, 'max_temp');
+    fireValue(control(editor, 'Minimum entity attribute (optional)'), 'min_temp');
+    assert.equal(lastConfig(editor).min_entity_attribute, 'min_temp');
+  });
+});
