@@ -206,6 +206,13 @@ class BigNumberCard extends HTMLElement {
 
     root.appendChild(card);
     this._config = cardConfig;
+
+    // The card was just rebuilt empty. Forget what set hass last painted, or an
+    // unchanged state would skip the repaint and leave the new card blank until the
+    // entity changes (HA calls setConfig on the existing card when an edit is saved).
+    // A fresh Symbol never equals a real state, attribute value or bound.
+    this._entityState = this._displayState = this._min = this._max = this._darkMode = Symbol('unpainted');
+    if (this._hass) this.hass = this._hass;
   }
 
   _fire(type, detail, options) {

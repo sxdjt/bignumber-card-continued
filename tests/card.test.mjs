@@ -62,13 +62,21 @@ describe('value', () => {
   });
 
   // BN6 (B8): setConfig rebuilds the card, but cached state skips the next repaint
-  test('a new config with unchanged entity state still shows the value', { todo: 'cached _entityState skips the repaint, value stays blank' }, () => {
+  test('a new config with unchanged entity state still shows the value', () => {
     const hass = makeHass({ 'sensor.p': W('42') });
     const card = makeCard({ entity: 'sensor.p', min: 0, max: 100 }, hass);
     card.setConfig({ entity: 'sensor.p', min: 0, max: 100, title: 'Power' });
+    assert.equal(valueEl(card).textContent, '42W', 'blank right after setConfig');
     card.hass = withStates(hass, {});
     assert.equal(valueEl(card).textContent, '42W');
     assert.equal(cssVar(card, '--bignumber-percent'), '58%');
+  });
+
+  test('an attribute that is missing still paints after setConfig', () => {
+    const hass = makeHass({ 'sensor.p': W('42') });
+    const card = makeCard({ entity: 'sensor.p', attribute: 'nope', hideunit: true }, hass);
+    card.setConfig({ entity: 'sensor.p', attribute: 'nope', hideunit: true, noneString: 'N/A' });
+    assert.equal(valueEl(card).textContent, 'N/A');
   });
 });
 
