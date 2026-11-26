@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - After a saved edit, the card shows its value right away. Home Assistant reuses the card on the dashboard, and the card skipped repainting while the entity's state was unchanged, so it stayed blank until the entity next changed.
+- Visual editor: a severity value of 0 is kept. Typing 0 removed the value, so that severity level never matched.
 
 ### Security
 - The value and unit are built from text, not `innerHTML`. A `display_entity` state or a `unit_of_measurement` containing markup was rendered as HTML (for example an `<img onerror>`).
-
 ## [2026.11.12] - 2026-11-12
 
 Accessibility improvements (screen reader).

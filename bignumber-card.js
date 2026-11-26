@@ -969,8 +969,8 @@ class BigNumberCardEditor extends HTMLElement {
   _updateSeverity(index, key, value) {
     const severities = [...(this._config.severity || [])];
     severities[index] = { ...severities[index], [key]: value };
-    // Remove empty values to keep config clean
-    if (!value) {
+    // Remove empty values to keep config clean (0 is a valid threshold, so not !value)
+    if (value === undefined || value === null || value === '') {
       delete severities[index][key];
     }
     // Remove deprecated keys if new keys are being used

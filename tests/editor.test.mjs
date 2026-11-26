@@ -28,10 +28,16 @@ describe('basic fields', () => {
 
 describe('severity', () => {
   // BE5 (B4): 0 is a valid threshold
-  test('a severity value of 0 is kept', { todo: '_updateSeverity deletes falsy values' }, async () => {
+  test('a severity value of 0 is kept', async () => {
     const editor = await makeEditor({ entity: 'sensor.p', severity: [{ value: 10, fill_color: 'red' }] });
     fireValue(severityValues(editor)[0], '0');
     assert.equal(lastConfig(editor).severity[0].value, 0);
+  });
+
+  test('clearing a severity value or color removes the key', async () => {
+    const editor = await makeEditor({ entity: 'sensor.p', severity: [{ value: 10, fill_color: 'red' }] });
+    fireValue(severityValues(editor)[0], '');
+    assert.equal('value' in lastConfig(editor).severity[0], false);
   });
 });
 
