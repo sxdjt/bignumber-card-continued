@@ -4,3 +4,5 @@ bignumber-card-beta.js
 BETA-EXAMPLES.yaml
 .DS_Store
 PROJECT-STATUS.md
+node_modules/
+coverage/
