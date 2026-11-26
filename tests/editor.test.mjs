@@ -43,10 +43,18 @@ describe('severity', () => {
 
 describe('setConfig after the first render', () => {
   // BE1 (B10/A11): render-once editor
-  test('a YAML edit shows in the visual editor', { todo: 'setConfig renders only once, fields stay stale' }, async () => {
+  test('a YAML edit shows in the visual editor', async () => {
     const editor = await makeEditor({ entity: 'sensor.p', title: 'Old' });
     editor.setConfig({ entity: 'sensor.p', title: 'New', severity: [{ value: 1 }] });
     assert.equal(control(editor, 'Title').value, 'New');
     assert.equal(severityValues(editor).length, 1);
+  });
+
+  test('HA handing back the editor\'s own change does not rebuild it (focus is kept)', async () => {
+    const editor = await makeEditor({ entity: 'sensor.p' });
+    const field = control(editor, 'Title');
+    fireValue(field, 'Typing');
+    editor.setConfig(lastConfig(editor));
+    assert.ok(control(editor, 'Title') === field, 'title field was rebuilt');
   });
 });

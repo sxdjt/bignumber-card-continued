@@ -600,12 +600,15 @@ class BigNumberCardEditor extends HTMLElement {
 
   setConfig(config) {
     this._config = { ...config };
-    // Only render once initially, not on every config update from HA
-    // This prevents destroying DOM elements and losing focus
-    if (!this._rendered) {
+    // HA hands every config-changed back through setConfig; rebuilding then would destroy
+    // the focused field. Rebuild only for a config the editor did not produce itself,
+    // such as a YAML edit (HA calls setConfig on this same element).
+    const incoming = JSON.stringify(this._config);
+    if (!this._rendered || incoming !== this._lastFired) {
       this.render();
       this._rendered = true;
     }
+    this._lastFired = incoming;
   }
 
   set hass(hass) {
@@ -620,6 +623,7 @@ class BigNumberCardEditor extends HTMLElement {
     // Blocked during render() initialization to prevent spurious events
     // from native <select> DOM connection from polluting the config stream.
     if (this._initializing) return;
+    this._lastFired = JSON.stringify(this._config);
     const event = new CustomEvent('config-changed', {
       bubbles: true,
       composed: true,
