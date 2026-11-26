@@ -1,6 +1,6 @@
 import { test, describe, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { Card, makeCard, makeHass, withStates, stateObj, haCard, valueEl, cssVar, cleanup, window } from './helpers/env.mjs';
+import { Card, makeCard, makeEditor, control, makeHass, withStates, stateObj, haCard, valueEl, cssVar, cleanup, window } from './helpers/env.mjs';
 
 afterEach(cleanup);
 
@@ -105,8 +105,34 @@ describe('opacity', () => {
   });
 
   test('opacity 0 shows as 0 in the editor field', async () => {
-    const { makeEditor, control } = await import('./helpers/env.mjs');
     const editor = await makeEditor({ entity: 'sensor.p', opacity: 0 });
     assert.equal(control(editor, 'Unit text opacity').value, 0);
+  });
+});
+
+describe('round', () => {
+  test('a negative round does not break the card', () => {
+    const card = makeCard({ entity: 'sensor.p', round: -1 });
+    assert.doesNotThrow(() => { card.hass = makeHass({ 'sensor.p': '12.34' }); });
+    assert.equal(valueEl(card).textContent, '12');
+  });
+
+  test('the editor limits Decimal places to 0-20', async () => {
+    const editor = await makeEditor({ entity: 'sensor.p' });
+    const { min, max } = control(editor, 'Decimal places').selector.number;
+    assert.deepEqual([min, max], [0, 20]);
+  });
+
+  test('round above 20 is clamped; a non-number is ignored; 0 rounds', () => {
+    const hass = makeHass({ 'sensor.p': '1.5' });
+    for (const [round, text] of [[50, '1.50000000000000000000'], ['abc', '1.5'], ['', '1.5'], [0, '2']]) {
+      const card = makeCard({ entity: 'sensor.p', round, hideunit: true }, hass);
+      assert.equal(valueEl(card).textContent, text, String(round));
+    }
+  });
+
+  test('a negative value that rounds to zero shows 0, not -0', () => {
+    const card = makeCard({ entity: 'sensor.p', round: 0, hideunit: true }, makeHass({ 'sensor.p': '-0.4' }));
+    assert.equal(valueEl(card).textContent, '0');
   });
 });

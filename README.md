@@ -43,7 +43,7 @@ A simple card to display big numbers for sensors. It also supports severity leve
 | noneString | string | optional | Text to show instead of the value when it is not a number
 | noneValueClass | string | optional | CSS class to add to the value when it is not a number
 | opacity | string | `0.7` | Opacity of the unit text (0 to 1)
-| round | int | optional | Number of decimals to round to. (If not present, do not round.)
+| round | int | optional | Number of decimals to round to, 0-20 (values outside are clamped). If not present, do not round
 | scale | string | 50px | Base scale for card: '50px'
 | severity | list | optional | A list of severity objects. Items in list must be ascending based on 'value'
 | tap_action | object | `{action: 'more-info'}` | Action to perform on tap. See Tap Action Object below

@@ -6,20 +6,6 @@ import { makeCard, makeEditor, makeHass, stateObj, haCard, valueEl, fireValue, l
 
 afterEach(cleanup);
 
-describe('BE4 (B5): round outside what toFixed accepts', () => {
-  test('a negative round does not break the card', { todo: 'toFixed(-1) throws RangeError in set hass' }, () => {
-    const card = makeCard({ entity: 'sensor.p', round: -1 });
-    assert.doesNotThrow(() => { card.hass = makeHass({ 'sensor.p': '12.34' }); });
-    assert.equal(valueEl(card).textContent, '12');
-  });
-
-  test('the editor limits Decimal places to 0-20', { todo: 'number selector has no min/max' }, async () => {
-    const editor = await makeEditor({ entity: 'sensor.p' });
-    const { min, max } = control(editor, 'Decimal places').selector.number;
-    assert.deepEqual([min, max], [0, 20]);
-  });
-});
-
 describe('BE3 (B6): dynamic bound attributes in the editor', () => {
   test('min/max entity attribute fields exist', { todo: 'min_entity_attribute and max_entity_attribute are YAML-only' }, async () => {
     const editor = await makeEditor({ entity: 'sensor.p', max_entity: 'climate.x', max_entity_attribute: 'max_temp' });

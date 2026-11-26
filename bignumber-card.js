@@ -439,15 +439,22 @@ class BigNumberCard extends HTMLElement {
     if (config.use_grouping === false) {
       options.useGrouping = false;
     }
-    if (config.round != null) {
-      options.minimumFractionDigits = config.round;
-      options.maximumFractionDigits = config.round;
+    // toFixed() throws a RangeError outside 0-100 digits, which stopped set hass from
+    // updating the card. Clamp to 0-20 (the editor's range); ignore a non-number.
+    let digits = null;
+    if (config.round != null && config.round !== '') {
+      const requested = Math.trunc(Number(config.round));
+      if (!Number.isNaN(requested)) digits = Math.min(20, Math.max(0, requested));
+    }
+    if (digits !== null) {
+      options.minimumFractionDigits = digits;
+      options.maximumFractionDigits = digits;
     }
 
     // Pre-round so we can eliminate negative zero before formatting.
     // toLocaleString can produce "-0" when a negative value rounds to zero (e.g. -0.4 with round:0).
-    const roundedValue = config.round != null
-      ? parseFloat(numValue.toFixed(config.round))
+    const roundedValue = digits !== null
+      ? parseFloat(numValue.toFixed(digits))
       : numValue;
 
     // Object.is(-0, 0) is false, so this specifically targets -0 only.
@@ -694,7 +701,7 @@ class BigNumberCardEditor extends HTMLElement {
     this._fireConfigChanged();
   }
 
-  _createTextfield(field, label, value, helperText, type = 'text') {
+  _createTextfield(field, label, value, helperText, type = 'text', limits = {}) {
     const container = document.createElement('div');
     container.className = 'field';
 
@@ -705,7 +712,7 @@ class BigNumberCardEditor extends HTMLElement {
     selector.label = label;
     if (helperText) selector.helper = helperText;
     if (type === 'number') {
-      selector.selector = { number: { mode: 'box', step: 1 } };
+      selector.selector = { number: { mode: 'box', step: 1, ...limits } };
     } else {
       selector.selector = { text: {} };
     }
@@ -1230,7 +1237,7 @@ class BigNumberCardEditor extends HTMLElement {
     displayContent.appendChild(this._createSwitch('hideunit', 'Hide unit of measurement', this._config.hideunit));
     // Default true; use !== false so an unset config shows the toggle as on (issue #13)
     displayContent.appendChild(this._createSwitch('full_height', 'Fill container height (turn off for picture-elements)', this._config.full_height !== false));
-    displayContent.appendChild(this._createTextfield('round', 'Decimal places', this._config.round, 'Number of decimal places (0-10)', 'number'));
+    displayContent.appendChild(this._createTextfield('round', 'Decimal places', this._config.round, 'Number of decimal places (0-20)', 'number', { min: 0, max: 20 }));
     // Default true; use !== false so an unset config shows the toggle as on (thousands separators enabled)
     displayContent.appendChild(this._createSwitch('use_grouping', 'Thousands separators', this._config.use_grouping !== false));
     displayContent.appendChild(this._createTextfield('unit', 'Custom unit', this._config.unit, 'Override entity unit of measurement'));

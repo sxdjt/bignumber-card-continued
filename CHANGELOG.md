@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Visual editor: a severity value of 0 is kept. Typing 0 removed the value, so that severity level never matched.
 - Visual editor: after a YAML edit, the fields and severity rows show the new config. The editor only drew its fields once, so it kept showing the old values.
 - `opacity: 0` is kept (the unit is fully transparent). It was replaced by the default 0.7, and the editor showed 0.7.
+- A `round` outside 0-20 no longer stops the card updating (a negative value threw an error); it is clamped. The editor's Decimal places field is limited to 0-20.
 
 ### Security
 - The value and unit are built from text, not `innerHTML`. A `display_entity` state or a `unit_of_measurement` containing markup was rendered as HTML (for example an `<img onerror>`).## [2026.11.12] - 2026-11-12
@@ -19,8 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Accessibility improvements (screen reader).
 
 ### Fixed
-- Visual editor: switches are announced by name in current Home Assistant.
-## [2026.11.11] - 2026-11-11
+- Visual editor: switches are announced by name in current Home Assistant.## [2026.11.11] - 2026-11-11
 
 ### Fixed
 - Keyboard: the card can be focused and runs its tap action with Enter or Space (unless the action is `none`).
