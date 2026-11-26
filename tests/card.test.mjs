@@ -97,3 +97,16 @@ describe('interaction', () => {
     assert.deepEqual(card.events, [{ type: 'hass-more-info', detail: { entityId: 'sensor.p' } }]);
   });
 });
+
+describe('opacity', () => {
+  test('a YAML opacity: 0 is kept', () => {
+    const card = makeCard({ entity: 'sensor.p', opacity: 0 }, makeHass({ 'sensor.p': '1' }));
+    assert.equal(card._config.opacity, 0);
+  });
+
+  test('opacity 0 shows as 0 in the editor field', async () => {
+    const { makeEditor, control } = await import('./helpers/env.mjs');
+    const editor = await makeEditor({ entity: 'sensor.p', opacity: 0 });
+    assert.equal(control(editor, 'Unit text opacity').value, 0);
+  });
+});

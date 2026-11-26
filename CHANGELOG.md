@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - After a saved edit, the card shows its value right away. Home Assistant reuses the card on the dashboard, and the card skipped repainting while the entity's state was unchanged, so it stayed blank until the entity next changed.
 - Visual editor: a severity value of 0 is kept. Typing 0 removed the value, so that severity level never matched.
 - Visual editor: after a YAML edit, the fields and severity rows show the new config. The editor only drew its fields once, so it kept showing the old values.
+- `opacity: 0` is kept (the unit is fully transparent). It was replaced by the default 0.7, and the editor showed 0.7.
 
 ### Security
 - The value and unit are built from text, not `innerHTML`. A `display_entity` state or a `unit_of_measurement` containing markup was rendered as HTML (for example an `<img onerror>`).## [2026.11.12] - 2026-11-12
@@ -19,7 +20,6 @@ Accessibility improvements (screen reader).
 
 ### Fixed
 - Visual editor: switches are announced by name in current Home Assistant.
-
 ## [2026.11.11] - 2026-11-11
 
 ### Fixed

@@ -43,7 +43,8 @@ class BigNumberCard extends HTMLElement {
     if (!cardConfig.from) cardConfig.from = "left";
     // 0.7 keeps the unit visibly de-emphasized while meeting 3:1 (large text) on the
     // default progress-bar fill; 0.5 was 2.5:1
-    if (!cardConfig.opacity) cardConfig.opacity = "0.7";
+    // == null, not !opacity: 0 is a valid opacity
+    if (cardConfig.opacity == null || cardConfig.opacity === '') cardConfig.opacity = "0.7";
     if (!cardConfig.noneString) cardConfig.noneString = null;
     if (!cardConfig.noneCardClass) cardConfig.noneCardClass = null;
     if (!cardConfig.noneValueClass) cardConfig.noneValueClass = null;
@@ -1254,7 +1255,7 @@ class BigNumberCardEditor extends HTMLElement {
     colorsContent.appendChild(this._createColorField('text_color', 'Text color', this._config.text_color || this._config.color));
     colorsContent.appendChild(this._createColorField('fill_color', 'Fill color (bar/background)', this._config.fill_color || this._config.bnStyle));
     colorsContent.appendChild(this._createColorField('background_color', 'Background color (unfilled portion)', this._config.background_color));
-    colorsContent.appendChild(this._createTextfield('opacity', 'Unit text opacity', this._config.opacity || '0.7', 'Value between 0 and 1'));
+    colorsContent.appendChild(this._createTextfield('opacity', 'Unit text opacity', this._config.opacity ?? '0.7', 'Value between 0 and 1'));
 
     root.appendChild(this._createExpansionPanel('Colors', colorsContent));
 

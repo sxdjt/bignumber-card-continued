@@ -6,13 +6,6 @@ import { makeCard, makeEditor, makeHass, stateObj, haCard, valueEl, fireValue, l
 
 afterEach(cleanup);
 
-describe('BN2 (B4): opacity 0', () => {
-  test('a YAML opacity: 0 is kept', { todo: '!cardConfig.opacity replaces 0 with 0.7' }, () => {
-    const card = makeCard({ entity: 'sensor.p', opacity: 0 }, makeHass({ 'sensor.p': '1' }));
-    assert.equal(card._config.opacity, 0);
-  });
-});
-
 describe('BE4 (B5): round outside what toFixed accepts', () => {
   test('a negative round does not break the card', { todo: 'toFixed(-1) throws RangeError in set hass' }, () => {
     const card = makeCard({ entity: 'sensor.p', round: -1 });
