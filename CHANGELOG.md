@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Visual editor: after a YAML edit, the fields and severity rows show the new config. The editor only drew its fields once, so it kept showing the old values.
 - `opacity: 0` is kept (the unit is fully transparent). It was replaced by the default 0.7, and the editor showed 0.7.
 - A `round` outside 0-20 no longer stops the card updating (a negative value threw an error); it is clamped. The editor's Decimal places field is limited to 0-20.
+- Holding Enter or Space runs the tap action once; key auto-repeat ran it again and again (a toggle flipped repeatedly).
 
 ### Security
 - The value and unit are built from text, not `innerHTML`. A `display_entity` state or a `unit_of_measurement` containing markup was rendered as HTML (for example an `<img onerror>`).## [2026.11.12] - 2026-11-12
@@ -32,7 +33,6 @@ Accessibility improvements (screen reader).
 
 ### Changed
 - Default unit text `opacity` is now `0.7` (was `0.5`), so the unit meets 3:1 contrast on the default progress-bar fill (3.6-3.8:1, previously 2.5:1). Configs that set `opacity` are unaffected.
-
 ## [2026.11.10] - 2026-11-10
 
 ### Fixed

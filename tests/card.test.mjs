@@ -136,3 +136,12 @@ describe('round', () => {
     assert.equal(valueEl(card).textContent, '0');
   });
 });
+
+describe('keyboard', () => {
+  test('auto-repeated Enter runs the tap action once', () => {
+    const hass = makeHass({ 'fan.f': stateObj('on', { percentage: 50 }) });
+    const card = makeCard({ entity: 'fan.f', attribute: 'percentage', tap_action: { action: 'toggle' } }, hass);
+    for (const repeat of [false, true, true]) haCard(card).dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', repeat, bubbles: true }));
+    assert.equal(hass.calls.length, 1);
+  });
+});

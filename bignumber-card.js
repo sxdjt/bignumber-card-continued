@@ -200,6 +200,8 @@ class BigNumberCard extends HTMLElement {
       card.addEventListener('keydown', event => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
+          // A held key auto-repeats keydown; run the action once per press
+          if (event.repeat) return;
           this._handleTapAction(cardConfig.tap_action, cardConfig.entity);
         }
       });
