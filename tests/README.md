@@ -28,7 +28,18 @@ IMPORTANT: never pass a DOM node to `assert` (`assert.equal(el, null)`, `assert.
 npm run coverage
 ```
 
-The target is 100% function and branch coverage of `bignumber-card.js`.
+Every function and every branch in `bignumber-card.js` is covered (71/71 functions, 326/326 branches). Keep both at 100%: a change that adds a function or branch should add the test that covers it. For a per-line list of gaps, add `--test-reporter=lcov --test-reporter-destination=<file>` and look for `FNDA:0` and `BRDA:...,0` lines.
+
+## Files
+
+| File | Covers |
+|------|--------|
+| `card.test.mjs` | Registration, defaults, dark theme fill, escaping of value and unit, repaint after `setConfig`, progress bar, opacity, `round` limits, held keys |
+| `card-behavior.test.mjs` | Card picker hooks and sizing, layout options, value display (attribute, unit, grouping, `display_entity`, None handling, theme switch), severity and color fallbacks, dynamic bounds, every tap action and confirmation |
+| `editor.test.mjs` | Title, first-frame change guard, severity value 0, `setConfig` after the first render, bound attribute fields, deprecated color keys |
+| `editor-fields.test.mjs` | Every field type, initial values and defaults, `hass` propagation, color validation and swatch, tap action panel rebuild and focus, confirmation, severity rows |
+
+happy-dom limitation found here: an `<option>` marked `selected` before it is appended loses its selection when later options are appended. The editor selects after building the list, which behaves the same in browsers.
 
 ## Known issues
 

@@ -218,17 +218,11 @@ class BigNumberCard extends HTMLElement {
     if (this._hass) this.hass = this._hass;
   }
 
-  _fire(type, detail, options) {
-    const node = this.shadowRoot;
-    options = options || {};
-    detail = (detail === null || detail === undefined) ? {} : detail;
-    const event = new Event(type, {
-      bubbles: options.bubbles === undefined ? true : options.bubbles,
-      cancelable: Boolean(options.cancelable),
-      composed: options.composed === undefined ? true : options.composed
-    });
+  // Every caller passes a detail and wants a bubbling, composed, non-cancelable event
+  _fire(type, detail) {
+    const event = new Event(type, { bubbles: true, cancelable: false, composed: true });
     event.detail = detail;
-    node.dispatchEvent(event);
+    this.shadowRoot.dispatchEvent(event);
     return event;
   }
 
@@ -912,11 +906,11 @@ class BigNumberCardEditor extends HTMLElement {
       const option = document.createElement('option');
       option.value = opt.value;
       option.textContent = opt.label;
-      if (opt.value === value) {
-        option.selected = true;
-      }
       select.appendChild(option);
     });
+    // Select after all options exist (an unknown value leaves the first option shown)
+    const selectedIndex = options.findIndex(opt => opt.value === value);
+    if (selectedIndex !== -1) select.selectedIndex = selectedIndex;
     select.addEventListener('change', (e) => {
       this._valueChanged(field, e.target.value);
     });
@@ -1035,8 +1029,7 @@ class BigNumberCardEditor extends HTMLElement {
   }
 
   render() {
-    if (!this.shadowRoot) return;
-
+    // The constructor always attaches the shadow root.
     // Block config-changed until the first animation frame after render(),
     // by which point any spurious browser change events have already fired.
     this._initializing = true;
