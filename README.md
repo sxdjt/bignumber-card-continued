@@ -29,8 +29,8 @@ A simple card to display big numbers for sensors. It also supports severity leve
 | display_attribute | string | optional | Attribute of `display_entity` to show instead of its state. See [Displaying a different entity](#displaying-a-different-entity)
 | display_entity | string | optional | Entity whose value is shown as the card's text, instead of `entity`. `entity` still drives the progress bar, severity colors, and tap action. See [Displaying a different entity](#displaying-a-different-entity)
 | entity | string | **Required** | `sensor.my_temperature`
-| fill_color | string | `var(--label-badge-blue)` | Bar fill color. Can be a hex value, CSS color name (e.g. green), or HA variable. Example: `var(--label-badge-green)`
-| from | string | left | Direction from where the bar will start filling (must have min/max specified)
+| fill_color | string | `var(--label-badge-blue)` (light theme), `#01579b` (dark theme) | Bar fill color. Can be a hex value, CSS color name (e.g. green), or HA variable. Example: `var(--label-badge-green)`
+| from | string | `left` | Direction from where the bar will start filling: `left`, `right`, `top` or `bottom` (must have min/max specified)
 | full_height | boolean | true | Fill the container height. Leave `true` for normal dashboard/grid/sections placement. Set `false` to size the card to its content when placing it in a `picture-elements` card. See [Picture Elements](#picture-elements)
 | hideunit | boolean | optional | hide the unit of measurement if set to true. If absent, unit of measurement will be shown
 | max | number | optional | Maximum value. Must be specified if you added min. Values outside `min`/`max` are clamped, so the bar shows completely full above `max` and empty below `min`
@@ -39,9 +39,10 @@ A simple card to display big numbers for sensors. It also supports severity leve
 | min | number | optional | Minimum value. If specified you get bar display
 | min_entity | string | optional | Entity whose value is used as the minimum, overriding `min`. Falls back to `min` if the entity is unavailable or non-numeric. See [Dynamic min/max](#dynamic-minmax)
 | min_entity_attribute | string | optional | Attribute of `min_entity` to read instead of its state. See [Dynamic min/max](#dynamic-minmax)
-| noneCardClass | string | optional | CSS class to add to card if value == None
-| noneString | string | optional | String to use for value if value == None
-| noneValueClass | string | optional | CSS class to add to value if value == None
+| noneCardClass | string | optional | CSS class to add to the card when the value is not a number (e.g. `unavailable`). See [Handling None Values](#handling-none-values)
+| noneString | string | optional | Text to show instead of the value when it is not a number
+| noneValueClass | string | optional | CSS class to add to the value when it is not a number
+| opacity | string | `0.7` | Opacity of the unit text (0 to 1)
 | round | int | optional | Number of decimals to round to. (If not present, do not round.)
 | scale | string | 50px | Base scale for card: '50px'
 | severity | list | optional | A list of severity objects. Items in list must be ascending based on 'value'
@@ -69,9 +70,9 @@ For backwards compatibility, the following option names still work but the new n
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
 | value | number | **Required** | Value until which to use this severity
-| fill_color | string | **Required** | Bar fill color. Can be a hex value, CSS color name (e.g. green), or HA variable. Example: `var(--label-badge-green)`
-| background_color | string | inherited | Unfilled bar portion color. Can be a hex value, CSS color name (e.g. green), or HA variable
-| text_color | string | `var(--primary-text-color)` | Text color. Can be a hex value, CSS color name (e.g. green), or HA variable. Example: `var(--secondary-text-color)`
+| fill_color | string | card `fill_color` | Bar fill color. Can be a hex value, CSS color name (e.g. green), or HA variable. Example: `var(--label-badge-green)`
+| background_color | string | card `background_color` | Unfilled bar portion color. Can be a hex value, CSS color name (e.g. green), or HA variable
+| text_color | string | card `text_color` | Text color. Can be a hex value, CSS color name (e.g. green), or HA variable. Example: `var(--secondary-text-color)`
 
 The deprecated names `bnStyle` and `color` also work in severity objects for backwards compatibility.
 
@@ -79,7 +80,8 @@ The deprecated names `bnStyle` and `color` also work in severity objects for bac
 
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
-| action | string | `more-info` | Action type: `more-info`, `toggle`, `call-service`, `navigate`, `url`, `none`
+| action | string | `more-info` | Action type: `more-info`, `toggle`, `call-service`, `navigate`, `url`, `none`. `toggle` calls `<domain>.toggle` on the card's `entity`, so it only works when that entity can be toggled (e.g. a `fan` or `light`)
+| confirmation | boolean or object | optional | Ask before running the action. `true` shows "Are you sure you want to run this action?"; `{ text: 'Run the pump?' }` shows your own text
 | navigation_path | string | optional | Path to navigate to (e.g., `/lovelace/1`) when action is `navigate`
 | service | string | optional | Service to call when action is `call-service` (e.g., `light.turn_on`)
 | service_data | object | optional | Service data to pass when action is `call-service`
@@ -87,7 +89,7 @@ The deprecated names `bnStyle` and `color` also work in severity objects for bac
 
 ### Notes
 
-- Numbers are automatically formatted with locale-aware thousands separators (e.g., 19,578 in US, 19.578 in German)
+- Numbers are automatically formatted with the browser's locale-aware thousands separators (e.g., 19,578 in US, 19.578 in German)
 - Font sizes can be customized independently from the `scale` parameter for better layout control
 - Make sure you use ascending object values to have consistent behaviour
 - Values are the upper limit until which that severity is applied
@@ -312,14 +314,31 @@ elements:
 
 ### Tap Action Examples
 
-Toggle a light on tap:
+Show a fan's speed and toggle the fan on tap (`toggle` acts on the card's `entity`):
 
 ```yaml
 - type: custom:bignumber-card
-  title: Power Usage
-  entity: sensor.power_consumption
+  title: Bedroom Fan
+  entity: fan.bedroom
+  attribute: percentage
+  unit: '%'
   tap_action:
     action: toggle
+```
+
+Toggle a different entity, and ask first:
+
+```yaml
+- type: custom:bignumber-card
+  title: Pool Temperature
+  entity: sensor.pool_temperature
+  tap_action:
+    action: call-service
+    service: switch.toggle
+    service_data:
+      entity_id: switch.pool_pump
+    confirmation:
+      text: Toggle the pool pump?
 ```
 
 Navigate to another view:
