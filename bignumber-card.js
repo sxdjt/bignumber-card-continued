@@ -935,6 +935,8 @@ class BigNumberCardEditor extends HTMLElement {
     // Value field
     const valueField = document.createElement('ha-selector');
     valueField.hass = this._hass;
+    // A severity level needs its threshold, so this field keeps its required marker (A3)
+    valueField.required = true;
     valueField.label = 'Value';
     valueField.selector = { number: { mode: 'box', step: 1 } };
     valueField.value = sev.value ?? '';

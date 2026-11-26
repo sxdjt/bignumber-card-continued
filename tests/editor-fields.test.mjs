@@ -154,6 +154,7 @@ describe('severity rows', () => {
     const [a, b] = rows(editor).map(rowFields);
     assert.deepEqual([a[0].value, a[1].value, a[2].value], [5, 'red', 'white']);
     assert.deepEqual([b[0].value, b[1].value, b[2].value], ['', '', '']);
+    assert.deepEqual([a[0].required, a[1].required, a[2].required], [true, false, false]);
   });
 
   test('editing colors replaces deprecated keys', async () => {
