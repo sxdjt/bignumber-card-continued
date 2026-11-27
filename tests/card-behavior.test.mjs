@@ -9,11 +9,17 @@ const styleText = (card) => card.shadowRoot.querySelector('style').textContent;
 const key = (card, k, opts = {}) => haCard(card).dispatchEvent(new window.KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...opts }));
 
 describe('card picker and sizing', () => {
-  test('getConfigElement, getCardSize, getGridOptions', () => {
+  // Found on ha-test (2026-11-26): a fixed 2 rows (about 120px) cut off the value and the
+  // title once a long title wrapped in a narrow slot (user decision: size to content)
+  test('getGridOptions sizes the card to its content (rows: auto)', () => {
+    const card = document.createElement('bignumber-card');
+    assert.deepEqual(card.getGridOptions(), { rows: 'auto', columns: 6, min_columns: 3 });
+  });
+
+  test('getConfigElement, getCardSize', () => {
     assert.ok(Card.getConfigElement() instanceof Editor);
     const card = makeCard({ entity: 'sensor.p' });
     assert.equal(card.getCardSize(), 1);
-    assert.deepEqual(card.getGridOptions(), { rows: 2, columns: 6, min_rows: 1, min_columns: 3 });
   });
 
   test('getStubConfig picks the first sensor, or none', () => {

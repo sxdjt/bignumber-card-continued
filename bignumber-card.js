@@ -575,12 +575,13 @@ class BigNumberCard extends HTMLElement {
     return 1;
   }
 
-  // Sections view (grid layout) sizing - 12-column grid system
+  // Sections view (grid layout) sizing - 12-column grid system. rows: 'auto' makes the card
+  // exactly as tall as its content; a fixed 2 rows (about 120px) cut off the value and the
+  // title once a long title wrapped in a narrow slot (guide D7)
   getGridOptions() {
     return {
-      rows: 2,
+      rows: 'auto',
       columns: 6,
-      min_rows: 1,
       min_columns: 3,
     };
   }
