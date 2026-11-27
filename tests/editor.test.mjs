@@ -34,6 +34,16 @@ describe('severity', () => {
     assert.equal(lastConfig(editor).severity[0].value, 0);
   });
 
+  // Found on ha-test (2026-11-26): HA's number selector sends undefined when a field is
+  // cleared, not ''; Number(undefined) is NaN, which saved as `.nan` in the YAML
+  test('a severity value cleared the way HA does (undefined) or left non-numeric is removed', async () => {
+    const editor = await makeEditor({ entity: 'sensor.p', severity: [{ value: 10, fill_color: 'red' }] });
+    for (const cleared of [undefined, null, 'abc']) {
+      fireValue(severityValues(editor)[0], cleared);
+      assert.equal('value' in lastConfig(editor).severity[0], false, String(cleared));
+    }
+  });
+
   test('clearing a severity value or color removes the key', async () => {
     const editor = await makeEditor({ entity: 'sensor.p', severity: [{ value: 10, fill_color: 'red' }] });
     fireValue(severityValues(editor)[0], '');

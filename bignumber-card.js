@@ -586,6 +586,15 @@ class BigNumberCard extends HTMLElement {
   }
 }
 
+// A number field's value for the config, or undefined to remove the key. HA's number
+// selector sends undefined when a field is cleared (not ''), and Number(undefined) is NaN,
+// which saved as `.nan` in the YAML; null would become 0.
+function editorNumber(value) {
+  if (value === '' || value === null || value === undefined) return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 // Visual Editor for Big Number Card
 // Uses ha-selector for text/number inputs and ha-selector for entity/select only
 class BigNumberCardEditor extends HTMLElement {
@@ -720,9 +729,7 @@ class BigNumberCardEditor extends HTMLElement {
     selector.value = value ?? '';
     selector.addEventListener('value-changed', (e) => {
       e.stopPropagation();
-      const newValue = type === 'number' ?
-        (e.detail.value === '' ? undefined : Number(e.detail.value)) :
-        e.detail.value;
+      const newValue = type === 'number' ? editorNumber(e.detail.value) : e.detail.value;
       this._valueChanged(field, newValue);
     });
 
@@ -942,7 +949,7 @@ class BigNumberCardEditor extends HTMLElement {
     valueField.value = sev.value ?? '';
     valueField.addEventListener('value-changed', (e) => {
       e.stopPropagation();
-      this._updateSeverity(index, 'value', e.detail.value === '' ? undefined : Number(e.detail.value));
+      this._updateSeverity(index, 'value', editorNumber(e.detail.value));
     });
 
     // Fill color field (use new standard name, read from either for backwards compat)

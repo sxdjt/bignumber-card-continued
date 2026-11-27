@@ -18,6 +18,7 @@ and this project uses [CalVer](https://calver.org/) (`YYYY.M.D`) versioning (Sem
 - A `round` outside 0-20 no longer stops the card updating (a negative value threw an error); it is clamped. The editor's Decimal places field is limited to 0-20.
 - Holding Enter or Space runs the tap action once; key auto-repeat ran it again and again (a toggle flipped repeatedly).
 - Visual editor: editing Text color or Fill color removes the deprecated `color` / `bnStyle` key it replaces. The old key stayed in the config, kept applying, and reappeared when the new field was cleared.
+- Visual editor: clearing a number field (Decimal places, Minimum, Maximum, a severity value) removes the setting. Home Assistant reports a cleared field as empty, which the editor saved as `NaN` (`.nan` in the YAML).
 
 ### Security
 - The value and unit are built from text, not `innerHTML`. A `display_entity` state or a `unit_of_measurement` containing markup was rendered as HTML (for example an `<img onerror>`).

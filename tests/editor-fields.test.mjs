@@ -26,6 +26,17 @@ describe('field types', () => {
     assert.equal('max' in lastConfig(editor), false);
   });
 
+  // Found on ha-test (2026-11-26): HA's number selector sends undefined when a field is cleared
+  test('number fields cleared the way HA does (undefined) or left non-numeric remove the key', async () => {
+    const editor = await makeEditor({ entity: 'sensor.p', round: 1, max: 100 });
+    for (const cleared of [undefined, null, 'abc']) {
+      fireValue(control(editor, 'Decimal places'), cleared);
+      fireValue(control(editor, 'Maximum value'), cleared);
+      const c = lastConfig(editor);
+      assert.deepEqual(['round' in c, 'max' in c], [false, false], String(cleared));
+    }
+  });
+
   test('fields start from the config; defaults shown when unset', async () => {
     const editor = await makeEditor({ entity: 'sensor.p', round: 0, from: 'top', unit_position: 'left', full_height: false, hideunit: true });
     assert.equal(control(editor, 'Decimal places').value, 0);
