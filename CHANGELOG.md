@@ -7,6 +7,8 @@ and this project uses [CalVer](https://calver.org/) (`YYYY.M.D`) versioning (Sem
 
 ## [Unreleased]
 
+## [2026.11.26-beta.1] - 2026-11-26 (pre-release)
+
 ### Added
 - Visual editor: Minimum and Maximum entity attribute fields (`min_entity_attribute`, `max_entity_attribute`), so a bound can come from an attribute such as a thermostat's `max_temp` without YAML.
 
