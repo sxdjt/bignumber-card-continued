@@ -1,5 +1,5 @@
 console.info(
-  `%c BIGNUMBER-CARD-CONTINUED %c 2026.11.26-beta.1 `,
+  `%c BIGNUMBER-CARD-CONTINUED %c 2026.11.28 `,
   'color: black; background: #F2720C; font-weight: 600;',
   'color: black; background: #00a5c9; font-weight: 600;'
 );

@@ -7,6 +7,10 @@ and this project uses [CalVer](https://calver.org/) (`YYYY.M.D`) versioning (Sem
 
 ## [Unreleased]
 
+## [2026.11.28] - 2026-11-28
+
+Stable release of the 2026.11.26-beta.1 pre-release (details in its entry below). The README option tables now list required options first, then the rest A-Z.
+
 ## [2026.11.26-beta.1] - 2026-11-26 (pre-release)
 
 ### Added
