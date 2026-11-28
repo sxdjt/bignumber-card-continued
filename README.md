@@ -23,12 +23,12 @@ A simple card to display big numbers for sensors. It also supports severity leve
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
 | type | string | **Required** | `custom:bignumber-card`
+| entity | string | **Required** | `sensor.my_temperature`
 | attribute | string | optional | the entity attribute you want to display e.g. `current_temperature`.  The entity state will be shown if not defined.
 | background_color | string | `var(--card-background-color)` | Unfilled bar portion color. Can be a hex value, CSS color name (e.g. green), or HA variable
 | card_padding | string | optional | Custom card padding (e.g., "20px 10px"). Allows independent height control
 | display_attribute | string | optional | Attribute of `display_entity` to show instead of its state. See [Displaying a different entity](#displaying-a-different-entity)
 | display_entity | string | optional | Entity whose value is shown as the card's text, instead of `entity`. `entity` still drives the progress bar, severity colors, and tap action. See [Displaying a different entity](#displaying-a-different-entity)
-| entity | string | **Required** | `sensor.my_temperature`
 | fill_color | string | `var(--label-badge-blue)` (light theme), `#01579b` (dark theme) | Bar fill color. Can be a hex value, CSS color name (e.g. green), or HA variable. Example: `var(--label-badge-green)`
 | from | string | `left` | Direction from where the bar will start filling: `left`, `right`, `top` or `bottom` (must have min/max specified)
 | full_height | boolean | true | Fill the container height. Leave `true` for normal dashboard/grid/sections placement. Set `false` to size the card to its content when placing it in a `picture-elements` card. See [Picture Elements](#picture-elements)
